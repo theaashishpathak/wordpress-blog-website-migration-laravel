@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    a {
+        text-decoration: none !important;
+        color: inherit;
+    }
+}
+
+@layer components {
+    [data-sidebar] .sidebar-menu-item {
+        @apply relative flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 outline-none border-0;
+    }
+
+    [data-sidebar] .sidebar-menu-item-active {
+        @apply bg-indigo-500/20 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.45)];
+    }
+
+    [data-sidebar] .sidebar-menu-item-inactive {
+        @apply text-slate-300 hover:bg-white/10 hover:text-white;
+    }
+
+    [data-sidebar] button.sidebar-menu-item {
+        @apply appearance-none text-left;
+        color: inherit;
+        font: inherit;
+    }
+
+    [data-sidebar] button.sidebar-menu-item:not(.sidebar-menu-item-active) {
+        @apply bg-transparent;
+    }
+
+    [data-sidebar] button.sidebar-menu-item:focus,
+    [data-sidebar] button.sidebar-menu-item:focus-visible,
+    [data-sidebar] button.sidebar-menu-item:active,
+    [data-sidebar] button.sidebar-menu-item[aria-expanded="true"] {
+        outline: none !important;
+        box-shadow: none;
+        border-radius: 1rem !important;
+    }
+
+    [data-sidebar] .sidebar-submenu {
+        @apply ml-6 mt-2 space-y-1.5 border-l border-slate-700/70 pl-3;
+    }
+
+    [data-sidebar] .sidebar-submenu-item {
+        @apply flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 outline-none;
+    }
+
+    [data-sidebar] .sidebar-submenu-item-active {
+        @apply bg-indigo-500/15 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.35)];
+    }
+
+    [data-sidebar] .sidebar-submenu-item-inactive {
+        @apply text-slate-300 hover:bg-white/10 hover:text-white;
+    }
+}
+
+

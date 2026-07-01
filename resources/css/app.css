@@ -1,0 +1,402 @@
+@import 'tailwindcss';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+/*
+ * Class-based dark mode. Tailwind v4 defaults to `@media (prefers-color-scheme: dark)`,
+ * which makes `dark:` variants react only to the OS-level preference. We want them
+ * to react to a `.dark` class on <html> (toggled by our theme button + persisted to
+ * localStorage), so we redefine the dark variant.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    a {
+        text-decoration: none !important;
+        color: inherit;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Prose (article body) — lightweight replacement for @tailwindcss/typography
+|--------------------------------------------------------------------------
+| The frontend post-show view applies `prose prose-lg dark:prose-invert`
+| classes to the article HTML rendered from the editor. Without the
+| Typography plugin those classes are no-ops, so we ship our own minimal
+| reading style so paragraphs, headings, lists, images and code blocks
+| render legibly out of the box.
+*/
+.prose {
+    color: rgb(51 65 85); /* slate-700 */
+    line-height: 1.75;
+    font-size: 1rem;
+    max-width: 65ch;
+}
+.prose.max-w-none { max-width: none; }
+.prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
+/* Legacy posts saved without paragraph tags still get spacing — line
+   breaks (Shift+Enter) become visual gaps so a wall-of-text post is
+   readable while the migration command runs. */
+.prose br { content: ""; display: block; margin-top: 0.6em; }
+/* Empty <p></p> from the editor acts as a paragraph break. */
+.prose p:empty { min-height: 1em; }
+.prose h1, .prose h2, .prose h3, .prose h4 {
+    color: rgb(15 23 42); /* slate-900 */
+    font-weight: 800;
+    line-height: 1.25;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+}
+.prose h1 { font-size: 2.25em; }
+.prose h2 { font-size: 1.6em; }
+.prose h3 { font-size: 1.3em; }
+.prose h4 { font-size: 1.1em; }
+.prose ul, .prose ol { margin: 1.25em 0; padding-left: 1.5em; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose li { margin-top: 0.4em; margin-bottom: 0.4em; }
+.prose a {
+    color: rgb(79 70 229) !important; /* indigo-600 */
+    text-decoration: underline !important;
+    font-weight: 500;
+}
+.prose strong { color: rgb(15 23 42); font-weight: 700; }
+.prose blockquote {
+    margin: 1.5em 0;
+    padding-left: 1em;
+    border-left: 4px solid rgb(226 232 240); /* slate-200 */
+    font-style: italic;
+    color: rgb(71 85 105); /* slate-600 */
+}
+.prose img, .prose video, .prose figure {
+    margin: 1.5em 0;
+    border-radius: 0.75rem;
+    max-width: 100%;
+    height: auto;
+}
+.prose code {
+    background: rgb(241 245 249); /* slate-100 */
+    padding: 0.15em 0.35em;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+.prose pre {
+    background: rgb(15 23 42); /* slate-900 */
+    color: rgb(226 232 240);
+    padding: 1em;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.5em 0;
+}
+.prose pre code { background: transparent; padding: 0; color: inherit; }
+.prose hr { border-color: rgb(226 232 240); margin: 2em 0; }
+.prose table { width: 100%; margin: 1.5em 0; border-collapse: collapse; }
+.prose th, .prose td { border: 1px solid rgb(226 232 240); padding: 0.5em 0.75em; text-align: left; }
+.prose th { background: rgb(248 250 252); font-weight: 600; }
+.prose-lg { font-size: 1.125rem; }
+.prose-lg p { line-height: 1.8; }
+
+/* Dark mode variants */
+.dark .prose {
+    color: rgb(203 213 225); /* slate-300 */
+}
+.dark .prose h1, .dark .prose h2, .dark .prose h3, .dark .prose h4,
+.dark .prose strong {
+    color: rgb(248 250 252); /* slate-50 */
+}
+.dark .prose blockquote {
+    border-left-color: rgb(51 65 85);
+    color: rgb(148 163 184);
+}
+.dark .prose code {
+    background: rgb(30 41 59);
+    color: rgb(226 232 240);
+}
+.dark .prose hr { border-color: rgb(51 65 85); }
+.dark .prose th, .dark .prose td { border-color: rgb(51 65 85); }
+.dark .prose th { background: rgb(15 23 42); }
+
+/*
+|--------------------------------------------------------------------------
+| Frontend utilities
+|--------------------------------------------------------------------------
+*/
+
+/* Hide scrollbar but keep scrollability (used by breaking news ticker, category nav) */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Smooth scroll for anchor jumps (#newsletter etc.) */
+html { scroll-behavior: smooth; }
+
+/* Better focus rings — keyboard-only */
+:focus-visible {
+    outline: 2px solid rgb(99 102 241); /* indigo-500 */
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+}
+
+/* Selection color */
+::selection {
+    background: rgba(99, 102, 241, 0.25);
+    color: rgb(30 27 75); /* indigo-950 */
+}
+.dark ::selection {
+    background: rgba(165, 180, 252, 0.3);
+    color: rgb(238 242 255); /* indigo-50 */
+}
+
+/* Magazine-style drop cap for first paragraph of articles (opt-in via .prose-dropcap) */
+.prose-dropcap > p:first-of-type::first-letter {
+    float: left;
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5em;
+    line-height: 0.85;
+    margin: 0.05em 0.1em 0 0;
+    font-weight: 900;
+    color: rgb(79 70 229); /* indigo-600 */
+}
+.dark .prose-dropcap > p:first-of-type::first-letter {
+    color: rgb(165 180 252); /* indigo-300 */
+}
+
+/* x-cloak — hide Alpine-bound elements until Alpine initializes */
+[x-cloak] { display: none !important; }
+
+/* Custom scrollbar for the whole frontend (subtle, slate-toned) */
+@media (min-width: 768px) {
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(203 213 225) transparent;
+    }
+    html::-webkit-scrollbar { width: 10px; }
+    html::-webkit-scrollbar-track { background: transparent; }
+    html::-webkit-scrollbar-thumb {
+        background: rgb(203 213 225);
+        border-radius: 9999px;
+        border: 2px solid white;
+    }
+    html.dark::-webkit-scrollbar-thumb {
+        background: rgb(51 65 85);
+        border-color: rgb(2 6 23);
+    }
+}
+
+@layer components {
+    /*
+    |--------------------------------------------------------------------------
+    | Sidebar Styles
+    |--------------------------------------------------------------------------
+    | Isolated sidebar styles.
+    | These classes do not affect navbar dropdowns, modal buttons, Bootstrap,
+    | Select2, Summernote, Toastr, SweetAlert, or other app components.
+    */
+
+    [data-sidebar] .sidebar-menu-item {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-height: 36px;
+        align-items: center;
+        gap: 0.625rem;
+        border-radius: 0.95rem !important;
+        padding: 0.45rem 0.875rem;
+        font-family: inherit !important;
+        font-size: 0.82rem !important;
+        line-height: 1rem !important;
+        font-weight: 500 !important;
+        color: rgb(203 213 225) !important;
+        text-decoration: none !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        transition:
+            background-color 180ms ease,
+            color 180ms ease,
+            box-shadow 180ms ease,
+            transform 180ms ease;
+    }
+
+    [data-sidebar] a.sidebar-menu-item,
+    [data-sidebar] button.sidebar-menu-item {
+        font-family: inherit !important;
+        font-size: 0.82rem !important;
+        line-height: 1rem !important;
+        font-weight: 500 !important;
+        color: rgb(203 213 225) !important;
+    }
+
+    [data-sidebar] button.sidebar-menu-item {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-image: none !important;
+        text-align: left !important;
+        cursor: pointer;
+    }
+
+    [data-sidebar] .sidebar-menu-item span,
+    [data-sidebar] .sidebar-menu-item svg,
+    [data-sidebar] .sidebar-menu-item i {
+        color: currentColor !important;
+        stroke: currentColor !important;
+    }
+
+    [data-sidebar] .sidebar-menu-item-inactive,
+    [data-sidebar] a.sidebar-menu-item-inactive,
+    [data-sidebar] button.sidebar-menu-item-inactive {
+        color: rgb(203 213 225) !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    [data-sidebar] .sidebar-menu-item-inactive:hover,
+    [data-sidebar] a.sidebar-menu-item-inactive:hover,
+    [data-sidebar] button.sidebar-menu-item-inactive:hover {
+        background-color: rgb(255 255 255 / 0.08) !important;
+        color: #ffffff !important;
+        border-radius: 0.95rem !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-sidebar] .sidebar-menu-item-active,
+    [data-sidebar] a.sidebar-menu-item-active,
+    [data-sidebar] button.sidebar-menu-item-active,
+    [data-sidebar] .sidebar-menu-item-active:hover,
+    [data-sidebar] a.sidebar-menu-item-active:hover,
+    [data-sidebar] button.sidebar-menu-item-active:hover,
+    [data-sidebar] button.sidebar-menu-item-active:active,
+    [data-sidebar] button.sidebar-menu-item-active:focus,
+    [data-sidebar] button.sidebar-menu-item-active:focus-visible,
+    [data-sidebar] button.sidebar-menu-item-active[aria-expanded='true'] {
+        background-color: rgb(99 102 241 / 0.22) !important;
+        color: #ffffff !important;
+        border-radius: 0.95rem !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-sidebar] button.sidebar-menu-item:focus,
+    [data-sidebar] button.sidebar-menu-item:focus-visible,
+    [data-sidebar] button.sidebar-menu-item:active,
+    [data-sidebar] button.sidebar-menu-item[aria-expanded='true'] {
+        border-radius: 0.95rem !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-sidebar] .sidebar-menu-chevron {
+        margin-left: auto;
+        height: 0.85rem;
+        width: 0.85rem;
+        flex-shrink: 0;
+        color: currentColor !important;
+        stroke: currentColor !important;
+        transition:
+            transform 180ms ease,
+            color 180ms ease;
+    }
+
+    [data-sidebar] button[aria-expanded='true'] .sidebar-menu-chevron {
+        transform: rotate(180deg);
+    }
+
+    [data-sidebar] .sidebar-submenu {
+        margin-left: 1.25rem;
+        margin-top: 0.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.12rem;
+        border-left: 1px solid rgb(51 65 85 / 0.75);
+        padding-left: 0.7rem;
+    }
+
+    [data-sidebar] .sidebar-submenu-item {
+        display: flex;
+        width: 100%;
+        min-height: 32px;
+        align-items: center;
+        border-radius: 0.75rem !important;
+        padding: 0.4rem 0.7rem;
+        font-family: inherit !important;
+        font-size: 0.77rem !important;
+        line-height: 0.95rem !important;
+        font-weight: 500 !important;
+        color: rgb(203 213 225) !important;
+        text-decoration: none !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        transition:
+            background-color 180ms ease,
+            color 180ms ease;
+    }
+
+    [data-sidebar] .sidebar-submenu-item span,
+    [data-sidebar] .sidebar-submenu-item svg,
+    [data-sidebar] .sidebar-submenu-item i {
+        color: currentColor !important;
+        stroke: currentColor !important;
+    }
+
+    [data-sidebar] .sidebar-submenu-item-inactive {
+        color: rgb(203 213 225) !important;
+        background-color: transparent !important;
+    }
+
+    [data-sidebar] .sidebar-submenu-item-inactive:hover {
+        background-color: rgb(255 255 255 / 0.08) !important;
+        color: #ffffff !important;
+    }
+
+    [data-sidebar] .sidebar-submenu-item-active,
+    [data-sidebar] .sidebar-submenu-item-active:hover {
+        background-color: rgb(99 102 241 / 0.20) !important;
+        color: #ffffff !important;
+        border-radius: 0.75rem !important;
+        box-shadow: none !important;
+    }
+
+    [data-sidebar] [data-sidebar-label].hidden + .sidebar-menu-chevron,
+    [data-sidebar] .sidebar-menu-chevron.hidden {
+        display: none !important;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sidebar User Card
+    |--------------------------------------------------------------------------
+    */
+
+    [data-sidebar] .sidebar-user-card {
+        border-radius: 1rem;
+        border: 1px solid rgb(255 255 255 / 0.10);
+        background-color: rgb(255 255 255 / 0.05);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Small UI Protection
+    |--------------------------------------------------------------------------
+    | Keeps external CSS from changing sidebar button/link typography.
+    */
+
+    [data-sidebar] nav a,
+    [data-sidebar] nav button {
+        font-family: inherit !important;
+    }
+}
