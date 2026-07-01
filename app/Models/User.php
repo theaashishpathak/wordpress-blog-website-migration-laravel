@@ -109,6 +109,11 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class, 'department_id');
     }
 
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'author_id');
+    }
+
     public function manager(): BelongsTo
     {
         return $this->belongsTo(self::class, 'manager_id');

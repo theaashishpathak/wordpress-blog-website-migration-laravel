@@ -196,6 +196,9 @@ Route::middleware(['auth', 'verified', 'visitor'])
         )->name('data.export.download');
     });
 
-
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/admin/dashboard/super', App\Livewire\Admin\Dashboards\SuperAdminDashboard::class)
+        ->name('admin.dashboard.super');
+});
 require __DIR__.'/admin.php';
 require __DIR__.'/settings.php';

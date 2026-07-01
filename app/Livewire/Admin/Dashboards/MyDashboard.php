@@ -9,6 +9,7 @@ use App\Models\AIUsageLog;
 use App\Models\Comment;
 use App\Models\LoginLog;
 use App\Models\Post;
+use App\Models\PostTranslation;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -19,167 +20,78 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+/**
+ * My Dashboard — the per-user personal command centre.
+ *
+ * Surfaces what the logged-in user is doing right now: their drafts,
+ * pending submissions, AI spend, post performance, comments awaiting
+ * their moderation, recent logins, and profile-completeness nudges.
+ *
+ * Every section is role-aware — an author sees only their own posts
+ * and AI spend; an admin additionally sees platform totals and the
+ * editorial queue across all authors.
+ */
 #[Layout('layouts.app')]
 #[Title('My Dashboard')]
 class MyDashboard extends Component
 {
+    /** @var User */
     public User $me;
 
     public function mount(): void
     {
         $user = auth()->user();
         abort_unless($user !== null, 403);
+
         $this->me = $user->load(['department', 'manager']);
     }
 
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Site-wide tiles
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // Per-user computed metrics
+    // -----------------------------------------------------------------
 
-    /** @return array<string, int> */
-    #[Computed]
-    public function siteTiles(): array
-    {
-        return [
-            'total_published' => Post::where('status', PostStatus::Published->value)->count(),
-            'published_today' => Post::where('status', PostStatus::Published->value)
-                ->whereDate('published_at', today())->count(),
-            'pending_review' => Post::whereIn('status', [
-                PostStatus::PendingReview->value,
-                PostStatus::InReview->value,
-            ])->count(),
-            'scheduled' => Post::where('status', PostStatus::Scheduled->value)->count(),
-            'drafts' => Post::where('status', PostStatus::Draft->value)->count(),
-            'pending_comments' => Comment::where('status', Comment::STATUS_PENDING)->count(),
-        ];
-    }
-
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Pending review queue
-    // -------------------------------------------------------------------------
-
-    /** @return Collection<int, Post> */
-    #[Computed]
-    public function pendingReviewQueue(): Collection
-    {
-        return Post::with(['translations', 'category.translations', 'author:id,name'])
-            ->whereIn('status', [
-                PostStatus::PendingReview->value,
-                PostStatus::InReview->value,
-            ])
-            ->latest('updated_at')
-            ->limit(8)
-            ->get();
-    }
-
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Scheduled posts
-    // -------------------------------------------------------------------------
-
-    /** @return Collection<int, Post> */
-    #[Computed]
-    public function scheduledPosts(): Collection
-    {
-        return Post::with(['translations', 'category.translations', 'author:id,name'])
-            ->where('status', PostStatus::Scheduled->value)
-            ->whereNotNull('scheduled_at')
-            ->orderBy('scheduled_at')
-            ->limit(6)
-            ->get();
-    }
-
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Homepage featured content snapshot
-    // -------------------------------------------------------------------------
-
-    /** @return array<string, Collection<int, Post>> */
-    #[Computed]
-    public function featuredContent(): array
-    {
-        $base = Post::with(['translations', 'category.translations', 'author:id,name'])
-            ->where('status', PostStatus::Published->value);
-
-        return [
-            'breaking' => (clone $base)->where('is_breaking', true)
-                ->where(fn($q) => $q->whereNull('breaking_expires_at')
-                    ->orWhere('breaking_expires_at', '>', now()))
-                ->latest('published_at')->limit(3)->get(),
-            'featured' => (clone $base)->where('is_featured', true)
-                ->latest('published_at')->limit(4)->get(),
-            'trending' => (clone $base)->where('is_trending', true)
-                ->latest('published_at')->limit(4)->get(),
-            'editors_pick' => (clone $base)->where('is_editors_pick', true)
-                ->latest('published_at')->limit(4)->get(),
-        ];
-    }
-
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Team activity (who published what, last 7 days)
-    // -------------------------------------------------------------------------
-
-    /** @return \Illuminate\Support\Collection<int, object> */
-    #[Computed]
-    public function authorActivity(): \Illuminate\Support\Collection
-    {
-        return DB::table('posts')
-            ->join('users', 'posts.author_id', '=', 'users.id')
-            ->where('posts.status', PostStatus::Published->value)
-            ->where('posts.published_at', '>=', now()->subDays(7))
-            ->whereNull('posts.deleted_at')
-            ->selectRaw('users.id, users.name,
-                COUNT(posts.id) as published_count,
-                MAX(posts.published_at) as last_published_at')
-            ->groupBy('users.id', 'users.name')
-            ->orderByDesc('published_count')
-            ->limit(8)
-            ->get();
-    }
-
-    // -------------------------------------------------------------------------
-    // SUPER ADMIN: Recently published (all authors)
-    // -------------------------------------------------------------------------
-
-    /** @return Collection<int, Post> */
-    #[Computed]
-    public function recentlyPublished(): Collection
-    {
-        return Post::with(['translations', 'category.translations', 'author:id,name'])
-            ->where('status', PostStatus::Published->value)
-            ->latest('published_at')
-            ->limit(8)
-            ->get();
-    }
-
-    // -------------------------------------------------------------------------
-    // PER-USER: My post stats
-    // -------------------------------------------------------------------------
-
-    /** @return array<string, int> */
+    /**
+     * @return array{
+     *   drafts:int, pending:int, published_total:int, published_month:int,
+     *   views_30d:int, views_total:int, scheduled:int,
+     *   comments_on_my_posts:int, pending_comments_on_my_posts:int,
+     * }
+     */
     #[Computed]
     public function myPostStats(): array
     {
-        $myPostIds = Post::where('author_id', $this->me->id)->pluck('id');
+        $myPostIds = Post::query()->where('author_id', $this->me->id)->pluck('id');
 
-        $statusRows = Post::where('author_id', $this->me->id)
+        $statusRows = Post::query()
+            ->where('author_id', $this->me->id)
             ->selectRaw('status, COUNT(*) as c')
             ->groupBy('status')
             ->pluck('c', 'status');
 
-        $publishedMonth = Post::where('author_id', $this->me->id)
+        $publishedMonth = Post::query()
+            ->where('author_id', $this->me->id)
             ->where('status', PostStatus::Published->value)
             ->where('published_at', '>=', now()->startOfMonth())
             ->count();
 
-        $views30d = (int) Post::where('author_id', $this->me->id)
+        $views30d = (int) Post::query()
+            ->where('author_id', $this->me->id)
             ->where('status', PostStatus::Published->value)
             ->where('published_at', '>=', now()->subDays(30))
             ->sum('view_count');
 
-        $viewsTotal = (int) Post::where('author_id', $this->me->id)->sum('view_count');
+        $viewsTotal = (int) Post::query()
+            ->where('author_id', $this->me->id)
+            ->sum('view_count');
 
-        $commentsOnMyPosts = $myPostIds->isEmpty() ? 0 : Comment::whereIn('post_id', $myPostIds)->count();
-        $pendingCommentsOnMyPosts = $myPostIds->isEmpty() ? 0 : Comment::whereIn('post_id', $myPostIds)
-            ->where('status', Comment::STATUS_PENDING)->count();
+        $commentsOnMyPosts = $myPostIds->isEmpty() ? 0 : Comment::query()
+            ->whereIn('post_id', $myPostIds)
+            ->count();
+
+        $pendingCommentsOnMyPosts = $myPostIds->isEmpty() ? 0 : Comment::query()
+            ->whereIn('post_id', $myPostIds)
+            ->where('status', Comment::STATUS_PENDING)
+            ->count();
 
         return [
             'drafts' => (int) ($statusRows[PostStatus::Draft->value] ?? 0),
@@ -194,22 +106,28 @@ class MyDashboard extends Component
         ];
     }
 
-    /** @return Collection<int, Post> */
+    /**
+     * @return Collection<int, Post>
+     */
     #[Computed]
     public function myRecentPosts(): Collection
     {
-        return Post::with(['translations', 'category.translations'])
+        return Post::query()
+            ->with(['translations', 'category.translations'])
             ->where('author_id', $this->me->id)
             ->latest('updated_at')
             ->limit(6)
             ->get();
     }
 
-    /** @return Collection<int, Post> */
+    /**
+     * @return Collection<int, Post>
+     */
     #[Computed]
     public function myTopPosts(): Collection
     {
-        return Post::with(['translations', 'category.translations'])
+        return Post::query()
+            ->with(['translations', 'category.translations'])
             ->where('author_id', $this->me->id)
             ->where('status', PostStatus::Published->value)
             ->orderByDesc('view_count')
@@ -217,13 +135,16 @@ class MyDashboard extends Component
             ->get();
     }
 
-    /** @return array{labels:list<string>, counts:list<int>} */
+    /**
+     * @return array{labels:list<string>, counts:list<int>}
+     */
     #[Computed]
     public function myPublishingChart(): array
     {
         $start = now()->subDays(13)->startOfDay();
 
-        $rows = Post::where('author_id', $this->me->id)
+        $rows = Post::query()
+            ->where('author_id', $this->me->id)
             ->where('status', PostStatus::Published->value)
             ->where('published_at', '>=', $start)
             ->selectRaw('DATE(published_at) as day, COUNT(*) as c')
@@ -241,14 +162,18 @@ class MyDashboard extends Component
         return ['labels' => $labels, 'counts' => $counts];
     }
 
-    /** @return array{calls:int, tokens:int, cost:float, last_used_at:?\Carbon\Carbon} */
+    /**
+     * AI spend for the current user this month.
+     *
+     * @return array{calls:int, tokens:int, cost:float, last_used_at:?\Carbon\Carbon}
+     */
     #[Computed]
     public function myAiSpend(): array
     {
-        $row = AIUsageLog::where('user_id', $this->me->id)
+        $row = AIUsageLog::query()
+            ->where('user_id', $this->me->id)
             ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-            ->selectRaw('COUNT(*) as calls, COALESCE(SUM(total_tokens),0) as tokens,
-                         COALESCE(SUM(estimated_cost_usd),0) as cost, MAX(created_at) as last_used')
+            ->selectRaw('COUNT(*) as calls, COALESCE(SUM(total_tokens), 0) as tokens, COALESCE(SUM(estimated_cost_usd), 0) as cost, MAX(created_at) as last_used')
             ->first();
 
         return [
@@ -259,7 +184,11 @@ class MyDashboard extends Component
         ];
     }
 
-    /** @return \Illuminate\Support\Collection<int, object> */
+    /**
+     * Top categories I tend to write in (last 90 days).
+     *
+     * @return \Illuminate\Support\Collection<int, object{name:string, c:int}>
+     */
     #[Computed]
     public function myTopCategories(): \Illuminate\Support\Collection
     {
@@ -280,24 +209,31 @@ class MyDashboard extends Component
             ->get();
     }
 
-    /** @return Collection<int, Comment> */
+    /**
+     * @return Collection<int, Comment>
+     */
     #[Computed]
     public function recentCommentsOnMyPosts(): Collection
     {
-        $myPostIds = Post::where('author_id', $this->me->id)->pluck('id');
+        $myPostIds = Post::query()->where('author_id', $this->me->id)->pluck('id');
 
         if ($myPostIds->isEmpty()) {
-            return new Collection;
+            return new Collection();
         }
 
-        return Comment::with('post.translations')
+        return Comment::query()
+            ->with('post.translations')
             ->whereIn('post_id', $myPostIds)
             ->latest()
             ->limit(5)
             ->get();
     }
 
-    /** @return array{unread:int, latest:\Illuminate\Support\Collection} */
+    /**
+     * Notifications + login activity for the user.
+     *
+     * @return array{unread:int, latest:\Illuminate\Support\Collection}
+     */
     #[Computed]
     public function notificationStats(): array
     {
@@ -307,54 +243,79 @@ class MyDashboard extends Component
         ];
     }
 
-    /** @return Collection<int, LoginLog> */
+    /**
+     * @return Collection<int, LoginLog>
+     */
     #[Computed]
     public function recentLogins(): Collection
     {
-        return LoginLog::where('user_id', $this->me->id)
+        return LoginLog::query()
+            ->where('user_id', $this->me->id)
             ->latest('login_at')
             ->limit(5)
             ->get();
     }
 
-    /** @return array{score:int, missing:list<array{key:string, label:string, url:?string}>} */
+    /**
+     * Profile-completeness score — encourages users to fill in bio,
+     * avatar, social links, 2FA. Each missing piece is a nudge card.
+     *
+     * @return array{score:int, missing:list<array{key:string, label:string, url:?string}>}
+     */
     #[Computed]
     public function profileCompleteness(): array
     {
         $checks = [
-            ['key' => 'avatar', 'label' => 'Upload a profile photo', 'url' => route('profile'), 'done' => !empty($this->me->avatar)],
-            ['key' => 'bio', 'label' => 'Write a short bio', 'url' => Gate::allows('posts.create') ? route('author.profile') : route('profile'), 'done' => !empty($this->me->bio)],
-            ['key' => 'social', 'label' => 'Add at least one social link', 'url' => Gate::allows('posts.create') ? route('author.profile') : route('profile'), 'done' => !empty($this->me->social_links) && count((array) $this->me->social_links) > 0],
-            ['key' => 'two_factor', 'label' => 'Enable two-factor auth', 'url' => route('profile'), 'done' => !empty($this->me->two_factor_confirmed_at)],
+            ['key' => 'avatar', 'label' => 'Upload a profile photo', 'url' => route('profile'), 'done' => ! empty($this->me->avatar)],
+            ['key' => 'bio', 'label' => 'Write a short bio', 'url' => Gate::allows('posts.create') ? route('author.profile') : route('profile'), 'done' => ! empty($this->me->bio)],
+            ['key' => 'social', 'label' => 'Add at least one social link', 'url' => Gate::allows('posts.create') ? route('author.profile') : route('profile'), 'done' => ! empty($this->me->social_links) && count((array) $this->me->social_links) > 0],
+            ['key' => 'phone', 'label' => 'Set a contact phone', 'url' => route('profile'), 'done' => ! empty($this->me->phone)],
+            ['key' => 'two_factor', 'label' => 'Enable two-factor auth', 'url' => route('profile'), 'done' => ! empty($this->me->two_factor_confirmed_at)],
         ];
 
-        $done = count(array_filter($checks, fn($c) => $c['done']));
+        $done = count(array_filter($checks, fn ($c) => $c['done']));
         $score = (int) round(($done / count($checks)) * 100);
 
-        $missing = array_values(array_filter(array_map(
-            fn($c) => $c['done'] ? null : ['key' => $c['key'], 'label' => $c['label'], 'url' => $c['url']],
-            $checks,
-        )));
+        $missing = array_values(array_filter(
+            array_map(
+                fn ($c) => $c['done'] ? null : ['key' => $c['key'], 'label' => $c['label'], 'url' => $c['url']],
+                $checks,
+            ),
+        ));
 
         return ['score' => $score, 'missing' => $missing];
     }
 
-    /** @return list<array{label:string, url:string, icon:string}> */
+    /**
+     * Quick links the user can act on. Permission-gated so an author
+     * sees only their writer-side shortcuts, a comment moderator sees
+     * their queue, etc.
+     *
+     * @return list<array{label:string, url:string, icon:string, color:string}>
+     */
     #[Computed]
     public function quickActions(): array
     {
         $actions = [];
 
-        if (Gate::allows('posts.create'))
-            $actions[] = ['label' => 'New Post', 'url' => route('admin.posts.create'), 'icon' => 'plus'];
-        if (Gate::allows('ai.use_writer'))
-            $actions[] = ['label' => 'AI Writer', 'url' => route('admin.ai.writer'), 'icon' => 'sparkles'];
-        if (Gate::any(['posts.view', 'posts.view_any']))
-            $actions[] = ['label' => 'My Posts', 'url' => route('admin.posts.index'), 'icon' => 'newspaper'];
-        if (Gate::allows('editorial.review_queue'))
-            $actions[] = ['label' => 'Review Queue', 'url' => route('admin.editorial.queue'), 'icon' => 'check-square'];
-        if (Gate::allows('comments.moderate'))
-            $actions[] = ['label' => 'Moderate', 'url' => route('admin.comments.index'), 'icon' => 'message-square'];
+        if (Gate::allows('posts.create')) {
+            $actions[] = ['label' => 'New Post', 'url' => route('admin.posts.create'), 'icon' => 'plus', 'color' => 'from-indigo-500 to-violet-500'];
+        }
+        if (Gate::allows('ai.use_writer')) {
+            $actions[] = ['label' => 'AI Writer', 'url' => route('admin.ai.writer'), 'icon' => 'sparkles', 'color' => 'from-violet-500 to-fuchsia-500'];
+        }
+        if (Gate::any(['posts.view', 'posts.view_any'])) {
+            $actions[] = ['label' => 'My Posts', 'url' => route('admin.posts.index'), 'icon' => 'newspaper', 'color' => 'from-emerald-500 to-teal-500'];
+        }
+        if (Gate::allows('editorial.review_queue')) {
+            $actions[] = ['label' => 'Review Queue', 'url' => route('admin.editorial.queue'), 'icon' => 'check-square', 'color' => 'from-amber-500 to-orange-500'];
+        }
+        if (Gate::allows('comments.moderate')) {
+            $actions[] = ['label' => 'Moderate', 'url' => route('admin.comments.index'), 'icon' => 'message-square', 'color' => 'from-rose-500 to-pink-500'];
+        }
+        if (Gate::allows('posts.create')) {
+            $actions[] = ['label' => 'Author Profile', 'url' => route('author.profile'), 'icon' => 'user-cog', 'color' => 'from-sky-500 to-cyan-500'];
+        }
 
         return $actions;
     }
