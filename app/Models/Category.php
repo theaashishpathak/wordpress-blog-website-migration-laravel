@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Concerns\HasContextualActivityLog;
 use App\Concerns\HasTranslations;
 use App\Contracts\Translatable;
+
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -107,6 +108,14 @@ class Category extends Model implements Translatable
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /**
+     * Posts belonging to this category.
+     */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 
     /**
