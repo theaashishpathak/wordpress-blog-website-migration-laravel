@@ -13,6 +13,7 @@
         ])
         ->having('posts_count', '>', 0)
         ->orderByDesc('posts_count')
+
         ->get();
 @endphp
 
