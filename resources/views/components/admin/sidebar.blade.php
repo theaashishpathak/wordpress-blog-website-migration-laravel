@@ -64,7 +64,7 @@
                 <span data-sidebar-label class="truncate">Admin Dashboard</span>
             </a>
 
-             {{-- ============================================================
+            {{-- ============================================================
                  Content + Editorial menu groups
                  ============================================================ --}}
 
@@ -131,13 +131,9 @@
                 </div>
             @endcanany
 
-
-
-
-
-            {{-- Team group (Staff + Departments) --}}
-            @canany(['staff.view', 'departments.view'])
-                @php($teamMenuActive = request()->routeIs('admin.staff.*') || request()->routeIs('admin.departments.*'))
+            {{-- Team group (Staff + Subscribers + Departments) --}}
+            @canany(['staff.view', 'subscribers.view', 'departments.view'])
+                @php($teamMenuActive = request()->routeIs('admin.staff.*') || request()->routeIs('admin.subscribers.*') || request()->routeIs('admin.departments.*'))
                 <div>
                     <button type="button"
                         class="{{ $dropdownParentClass }} {{ $teamMenuActive ? $menuActiveClass : $menuInactiveClass }}"
@@ -157,6 +153,12 @@
                                 <span data-sidebar-label>Staff</span>
                             </a>
                         @endcan
+                        @can('subscribers.view')
+                            <a href="{{ route('admin.subscribers.index') }}"
+                                class="{{ $childMenuBaseClass }} {{ request()->routeIs('admin.subscribers.*') ? $childMenuActiveClass : $childMenuInactiveClass }}">
+                                <span data-sidebar-label>Subscribers</span>
+                            </a>
+                        @endcan
                         @can('departments.view')
                             <a href="{{ route('admin.departments.index') }}"
                                 class="{{ $childMenuBaseClass }} {{ request()->routeIs('admin.departments.*') ? $childMenuActiveClass : $childMenuInactiveClass }}">
@@ -166,10 +168,6 @@
                     </div>
                 </div>
             @endcanany
-
-
-
-
 
             {{-- Analytics Dashboards group --}}
             @php($dashboardsActive = request()->routeIs('admin.dashboards.*'))

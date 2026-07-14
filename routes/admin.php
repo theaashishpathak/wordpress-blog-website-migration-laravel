@@ -72,6 +72,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
             ->middleware('permission:departments.view')->name('index');
     });
 
+    Route::prefix('subscribers')->name('admin.subscribers.')->group(function (): void {
+        Route::get('/', \App\Livewire\Admin\Subscribers\Index::class)
+            ->middleware('permission:subscribers.view')->name('index');
+    });
+
     // -------------------------------------------------------------------------
     // NewsPilot AI — Content / Posts module (Phase 4A)
     // -------------------------------------------------------------------------
