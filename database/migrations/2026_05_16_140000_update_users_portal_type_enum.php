@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Rename portal_type values to match the three real portals NewsPilot ships:
+ * Rename portal_type values to match the three real portals Rupantrix ships:
  *   - 'staff'  → 'author'  (writers / editors with admin access)
  *   - 'client' → 'visitor' (frontend readers, subscribers, commenters)
  *   - 'admin'  unchanged

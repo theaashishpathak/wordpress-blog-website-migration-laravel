@@ -65,7 +65,7 @@
                         </span>
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-slate-900 dark:text-slate-100" style="font-family: 'Playfair Display', serif;">
-                                NewsPilot Newsletter
+                                Rupantrix Newsletter
                                 @if ($sub->language)
                                     <span class="ml-1.5 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                                         {{ $sub->language->flag_emoji ?? '🌐' }}

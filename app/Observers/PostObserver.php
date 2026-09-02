@@ -86,11 +86,11 @@ class PostObserver
     private function invalidateRelatedCaches(Post $post): void
     {
         $keys = [
-            'newspilot.posts.popular',
-            'newspilot.posts.trending',
-            'newspilot.posts.breaking',
-            'newspilot.posts.latest',
-            "newspilot.posts.by-category.{$post->category_id}",
+            'Rupantrix.posts.popular',
+            'Rupantrix.posts.trending',
+            'Rupantrix.posts.breaking',
+            'Rupantrix.posts.latest',
+            "Rupantrix.posts.by-category.{$post->category_id}",
         ];
 
         foreach ($keys as $key) {

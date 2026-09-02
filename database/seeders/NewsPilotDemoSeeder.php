@@ -35,7 +35,7 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 /**
- * Rich demo seed for NewsPilot AI — populates a fresh install with
+ * Rich demo seed for Rupantrix — populates a fresh install with
  * everything a buyer needs to see the product working at a glance:
  *
  *   • 8 staff users (one per role, plus 3 prolific authors)
@@ -54,7 +54,7 @@ use Spatie\Permission\Models\Role;
  * staff users in place but adds a fresh batch of content rows. For a
  * truly clean re-seed, run `migrate:fresh --seed`.
  */
-class NewsPilotDemoSeeder extends Seeder
+class RupantrixDemoSeeder extends Seeder
 {
     /** @var array<string, User> */
     protected array $staff = [];
@@ -76,7 +76,7 @@ class NewsPilotDemoSeeder extends Seeder
         $this->english = Language::query()->where('code', 'en')->firstOrFail();
         $this->bangla = Language::query()->where('code', 'bn')->firstOrFail();
 
-        $this->command?->info('NewsPilot demo seeder');
+        $this->command?->info('Rupantrix demo seeder');
         $this->command?->info('─────────────────────────────────────────────');
 
         $this->step('staff users',     fn () => $this->seedStaff());
@@ -93,7 +93,7 @@ class NewsPilotDemoSeeder extends Seeder
         $this->step('notifications',   fn () => $this->seedSampleNotifications());
 
         $this->command?->info('─────────────────────────────────────────────');
-        $this->command?->info('NewsPilot demo seeding complete.');
+        $this->command?->info('Rupantrix demo seeding complete.');
     }
 
     /**
@@ -115,48 +115,48 @@ class NewsPilotDemoSeeder extends Seeder
     private function seedStaff(): void
     {
         $this->staff['super_admin'] = $this->staffUser(
-            'superadmin@newspilot.test', 'Super Admin', 'Super Admin',
+            'superadmin@Rupantrix.test', 'Super Admin', 'Super Admin',
             'AI-powered editor-in-chief running the show.',
         );
         $this->staff['admin'] = $this->staffUser(
-            'admin@newspilot.test', 'Aaliyah Khan', 'Admin',
+            'admin@Rupantrix.test', 'Aaliyah Khan', 'Admin',
             'Newsroom administrator overseeing day-to-day operations.',
         );
         $this->staff['editor'] = $this->staffUser(
-            'editor@newspilot.test', 'Marcus Hale', 'Editor',
+            'editor@Rupantrix.test', 'Marcus Hale', 'Editor',
             'Senior editor — politics & business desk.',
         );
         $this->staff['author_1'] = $this->staffUser(
-            'jane.reporter@newspilot.test', 'Jane Reporter', 'Author',
+            'jane.reporter@Rupantrix.test', 'Jane Reporter', 'Author',
             'Tech & AI reporter. Always shipping.',
         );
         $this->staff['author_2'] = $this->staffUser(
-            'sami.writer@newspilot.test', 'Sami Wright', 'Author',
+            'sami.writer@Rupantrix.test', 'Sami Wright', 'Author',
             'Culture and lifestyle features writer.',
         );
         $this->staff['author_3'] = $this->staffUser(
-            'leo.chen@newspilot.test', 'Leo Chen', 'Author',
+            'leo.chen@Rupantrix.test', 'Leo Chen', 'Author',
             'Business and markets correspondent.',
         );
         $this->staff['ad_manager'] = $this->staffUser(
-            'ads@newspilot.test', 'Priya Sharma', 'Ad Manager',
+            'ads@Rupantrix.test', 'Priya Sharma', 'Ad Manager',
             'Runs sponsorships and monetization.',
         );
         $this->staff['seo'] = $this->staffUser(
-            'seo@newspilot.test', 'Diego Ortiz', 'SEO Manager',
+            'seo@Rupantrix.test', 'Diego Ortiz', 'SEO Manager',
             'Owns sitemaps, schema, and search ranking.',
         );
 
         // Additional reporters to flesh out the leaderboard, kanban, and
         // author leaderboard widgets. Each gets the Author role.
         $extraAuthors = [
-            ['email' => 'olivia.brooks@newspilot.test', 'name' => 'Olivia Brooks', 'bio' => 'Climate + science correspondent.'],
-            ['email' => 'rafiq.hassan@newspilot.test', 'name' => 'Rafiq Hassan', 'bio' => 'Politics desk, South Asia bureau.'],
-            ['email' => 'nora.kowalski@newspilot.test', 'name' => 'Nora Kowalski', 'bio' => 'EU economics + trade.'],
-            ['email' => 'kenji.tanaka@newspilot.test', 'name' => 'Kenji Tanaka', 'bio' => 'Tokyo-based tech and gaming reporter.'],
-            ['email' => 'amara.okafor@newspilot.test', 'name' => 'Amara Okafor', 'bio' => 'Lagos correspondent — African business.'],
-            ['email' => 'sofia.lopez@newspilot.test', 'name' => 'Sofia Lopez', 'bio' => 'Latin America politics.'],
-            ['email' => 'tomas.berger@newspilot.test', 'name' => 'Tomas Berger', 'bio' => 'Sports reporter, multilingual.'],
+            ['email' => 'olivia.brooks@Rupantrix.test', 'name' => 'Olivia Brooks', 'bio' => 'Climate + science correspondent.'],
+            ['email' => 'rafiq.hassan@Rupantrix.test', 'name' => 'Rafiq Hassan', 'bio' => 'Politics desk, South Asia bureau.'],
+            ['email' => 'nora.kowalski@Rupantrix.test', 'name' => 'Nora Kowalski', 'bio' => 'EU economics + trade.'],
+            ['email' => 'kenji.tanaka@Rupantrix.test', 'name' => 'Kenji Tanaka', 'bio' => 'Tokyo-based tech and gaming reporter.'],
+            ['email' => 'amara.okafor@Rupantrix.test', 'name' => 'Amara Okafor', 'bio' => 'Lagos correspondent — African business.'],
+            ['email' => 'sofia.lopez@Rupantrix.test', 'name' => 'Sofia Lopez', 'bio' => 'Latin America politics.'],
+            ['email' => 'tomas.berger@Rupantrix.test', 'name' => 'Tomas Berger', 'bio' => 'Sports reporter, multilingual.'],
         ];
         foreach ($extraAuthors as $idx => $a) {
             $this->staff['author_extra_'.$idx] = $this->staffUser(
@@ -237,9 +237,9 @@ class NewsPilotDemoSeeder extends Seeder
             [
                 'name' => $data['name'],
                 'slug' => $data['slug'],
-                'description' => 'Latest '.$data['name'].' coverage from NewsPilot AI.',
-                'meta_title' => $data['name'].' — NewsPilot AI',
-                'meta_description' => 'Read the latest '.$data['name'].' news, analysis, and opinion on NewsPilot AI.',
+                'description' => 'Latest '.$data['name'].' coverage from Rupantrix.',
+                'meta_title' => $data['name'].' — Rupantrix',
+                'meta_description' => 'Read the latest '.$data['name'].' news, analysis, and opinion on Rupantrix.',
             ],
         );
     }
@@ -297,7 +297,7 @@ class NewsPilotDemoSeeder extends Seeder
     private function seedPages(): void
     {
         $blueprint = [
-            ['slug' => 'about', 'title' => 'About NewsPilot AI', 'menu' => true, 'order' => 1, 'body' => $this->aboutPageBody()],
+            ['slug' => 'about', 'title' => 'About Rupantrix', 'menu' => true, 'order' => 1, 'body' => $this->aboutPageBody()],
             ['slug' => 'contact', 'title' => 'Contact Us', 'menu' => true, 'order' => 2, 'body' => $this->contactPageBody()],
             ['slug' => 'privacy', 'title' => 'Privacy Policy', 'menu' => false, 'order' => 3, 'body' => $this->privacyPageBody()],
             ['slug' => 'terms', 'title' => 'Terms of Service', 'menu' => false, 'order' => 4, 'body' => $this->termsPageBody()],
@@ -322,7 +322,7 @@ class NewsPilotDemoSeeder extends Seeder
                     'title' => $entry['title'],
                     'slug' => $entry['slug'],
                     'content' => $entry['body'],
-                    'meta_title' => $entry['title'].' — NewsPilot AI',
+                    'meta_title' => $entry['title'].' — Rupantrix',
                     'meta_description' => Str::limit(strip_tags($entry['body']), 155),
                     'is_published' => true,
                 ],
@@ -332,32 +332,32 @@ class NewsPilotDemoSeeder extends Seeder
 
     private function aboutPageBody(): string
     {
-        return "<h2>About NewsPilot AI</h2>\n".
-            "<p>NewsPilot AI is a modern, AI-assisted news and magazine CMS built on Laravel 13 and Livewire 4. ".
+        return "<h2>About Rupantrix</h2>\n".
+            "<p>Rupantrix is a modern, AI-assisted news and magazine CMS built on Laravel 13 and Livewire 4. ".
             "We help editorial teams ship faster — from brainstorming a headline to publishing the article — with ".
             "the help of OpenAI and Gemini integrations baked into every step of the workflow.</p>\n".
-            "<p>This demo content is fully editable. Sign in as <code>admin@newspilot.test</code> (password: <code>password</code>) ".
+            "<p>This demo content is fully editable. Sign in as <code>admin@Rupantrix.test</code> (password: <code>password</code>) ".
             "to explore the admin.</p>";
     }
 
     private function contactPageBody(): string
     {
         return "<h2>Get in touch</h2>\n".
-            "<p>Editorial: <a href=\"mailto:editor@newspilot.test\">editor@newspilot.test</a></p>\n".
-            "<p>Advertising: <a href=\"mailto:ads@newspilot.test\">ads@newspilot.test</a></p>";
+            "<p>Editorial: <a href=\"mailto:editor@Rupantrix.test\">editor@Rupantrix.test</a></p>\n".
+            "<p>Advertising: <a href=\"mailto:ads@Rupantrix.test\">ads@Rupantrix.test</a></p>";
     }
 
     private function privacyPageBody(): string
     {
         return "<h2>Privacy Policy</h2>\n".
-            "<p>This is a placeholder Privacy Policy shipped with the NewsPilot demo. Replace it with the wording your ".
+            "<p>This is a placeholder Privacy Policy shipped with the Rupantrix demo. Replace it with the wording your ".
             "lawyers approve before going live.</p>";
     }
 
     private function termsPageBody(): string
     {
         return "<h2>Terms of Service</h2>\n".
-            "<p>This is a placeholder Terms of Service shipped with the NewsPilot demo.</p>";
+            "<p>This is a placeholder Terms of Service shipped with the Rupantrix demo.</p>";
     }
 
     // -----------------------------------------------------------------
@@ -710,7 +710,7 @@ class NewsPilotDemoSeeder extends Seeder
         // 5 creatives per zone (8 zones × 5 = 40 creatives) — mix of
         // active / paused / expired so admins see the full lifecycle.
         $sponsors = [
-            ['name' => 'NewsPilot Cloud — Launch your AI newsroom in minutes', 'url' => 'https://cloud.newspilot.test/launch'],
+            ['name' => 'Rupantrix Cloud — Launch your AI newsroom in minutes', 'url' => 'https://cloud.Rupantrix.test/launch'],
             ['name' => 'Anthropic API — Build with Claude',                    'url' => 'https://anthropic.example/api'],
             ['name' => 'Wired Magazine — Subscribe today',                     'url' => 'https://wired.example/subscribe'],
             ['name' => 'AWS — Free Tier for Startups',                         'url' => 'https://aws.example/startups'],

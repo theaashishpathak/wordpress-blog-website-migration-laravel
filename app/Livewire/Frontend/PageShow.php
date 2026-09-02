@@ -50,10 +50,34 @@ class PageShow extends Component
 
     public function render(): View
     {
+        $seo = \App\Models\SeoMeta::query()
+            ->where('seoable_type', $this->page->getMorphClass())
+            ->where('seoable_id', $this->page->id)
+            ->forLocale($this->translation->language_id)
+            ->first();
+
+        $metaTitle = $seo?->meta_title ?: ($this->translation->meta_title ?: $this->translation->title);
+        $metaDescription = $seo?->meta_description
+            ?: ($this->translation->meta_description
+                ?: \Illuminate\Support\Str::limit(strip_tags((string) $this->translation->content), 160));
+        $canonicalUrl = $seo?->canonical_url ?: url()->current();
+        $robots = $seo?->robots ?: 'index, follow';
+        $ogImage = $seo?->og_image ?: $this->translation->og_image;
+
         return view('livewire.frontend.page-show', [
-            'metaTitle' => $this->translation->meta_title ?: $this->translation->title,
-            'metaDescription' => $this->translation->meta_description
-                ?: \Illuminate\Support\Str::limit(strip_tags((string) $this->translation->content), 160),
+            'metaTitle' => $metaTitle,
+            'metaDescription' => $metaDescription,
+        ])->layout('frontend.layouts.app', [
+            'title' => $metaTitle,
+            'metaDescription' => $metaDescription,
+            'canonicalUrl' => $canonicalUrl,
+            'robots' => $robots,
+            'ogTitle' => $seo?->og_title ?: $metaTitle,
+            'ogDescription' => $seo?->og_description ?: $metaDescription,
+            'ogImage' => $ogImage,
+            'twitterTitle' => $seo?->twitter_title ?: ($seo?->og_title ?: $metaTitle),
+            'twitterDescription' => $seo?->twitter_description ?: ($seo?->og_description ?: $metaDescription),
+            'twitterImage' => $seo?->twitter_image ?: $ogImage,
         ]);
     }
 }

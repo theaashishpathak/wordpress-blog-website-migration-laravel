@@ -16,26 +16,22 @@
     @php
         $logoLight = $settings->get('branding.logo');
         $logoDark = $settings->get('branding.logo_dark') ?: $logoLight;
-        // $logoLightUrl = $logoLight ?
-        $logoLightUrl = $logoLight ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoDark) : null;
-
-        $logoDarkUrl = $logoDark ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoLight) : null;
-        $companyName = $settings->get('company.name') ?: config('app.name', 'NewsPilot AI');
+        $logoLightUrl = $logoLight ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoLight) : null;
+        $logoDarkUrl = $logoDark ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoDark) : $logoLightUrl;
+        $companyName = $settings->get('company.name') ?: config('app.name', 'Rupantrix');
     @endphp
     <div class="flex h-16 items-center justify-between border-b border-white/10 px-4">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-            @if ($logoLightUrl)
+            @if ($logoDarkUrl)
+                <img src="{{ $logoDarkUrl }}" alt="{{ $companyName }}"
+                    class="max-h-9 max-w-[160px] w-auto object-contain object-left">
+            @elseif ($logoLightUrl)
                 <img src="{{ $logoLightUrl }}" alt="{{ $companyName }}"
-                    class="h-[60px] w-[100px] rounded-xl object-contain {{ $logoDarkUrl && $logoDarkUrl !== $logoLightUrl ? 'dark:hidden' : '' }}">
-                @if ($logoDarkUrl && $logoDarkUrl !== $logoLightUrl)
-                    <img src="{{ $logoDarkUrl }}" alt="{{ $companyName }}"
-                        class="hidden h-10 w-10 rounded-xl object-contain dark:block">
-                @endif
+                    class="max-h-9 max-w-[160px] w-auto object-contain object-left">
             @else
                 <span
                     class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-bold text-white shadow-lg shadow-indigo-900/40">{{ strtoupper(substr($companyName, 0, 1)) }}</span>
             @endif
-            {{-- <span data-sidebar-label class="text-sm font-semibold tracking-wide text-white">{{ $companyName }}</span> --}}
         </a>
 
         <button type="button"
@@ -48,20 +44,12 @@
     <div class="flex-1 overflow-y-auto px-3 py-4">
         <nav class="space-y-1.5">
 
-            {{-- Super Admin Dashboard --}}
-            @php($mySuperAdminDashboard = request()->routeIs('admin.dashboard.super'))
-            <a href="{{ route('admin.dashboard.super') }}"
-                class="{{ $menuBaseClass }} {{ $mySuperAdminDashboard ? $menuActiveClass : $menuInactiveClass }}">
+            {{-- Main Dashboard --}}
+            @php($isDashboardActive = request()->routeIs('dashboard') || request()->routeIs('admin.dashboard.super') || request()->routeIs('dashboard.my'))
+            <a href="{{ route('dashboard') }}"
+                class="{{ $menuBaseClass }} {{ $isDashboardActive ? $menuActiveClass : $menuInactiveClass }}">
                 <i data-lucide="layout-grid" class="h-4 w-4 shrink-0"></i>
-                <span data-sidebar-label class="truncate">Super Admin Dashboard</span>
-            </a>
-
-            {{-- My Dashboard (top-level, available to every authenticated user) --}}
-            @php($myDashboardActive = request()->routeIs('dashboard') || request()->routeIs('dashboard.my'))
-            <a href="{{ route('dashboard.my') }}"
-                class="{{ $menuBaseClass }} {{ $myDashboardActive ? $menuActiveClass : $menuInactiveClass }}">
-                <i data-lucide="layout-grid" class="h-4 w-4 shrink-0"></i>
-                <span data-sidebar-label class="truncate">Admin Dashboard</span>
+                <span data-sidebar-label class="truncate">Dashboard</span>
             </a>
 
             {{-- ============================================================
@@ -484,7 +472,7 @@
                 class="h-10 w-10 rounded-full object-cover ring-2 ring-white/20">
             <div data-sidebar-label class="min-w-0">
                 <div class="truncate text-sm font-semibold text-white">{{ auth()->user()?->name ?? 'Admin' }}</div>
-                <div class="truncate text-xs text-slate-400">{{ auth()->user()?->email ?? 'admin@newspilot.ai' }}
+                <div class="truncate text-xs text-slate-400">{{ auth()->user()?->email ?? 'admin@Rupantrix.ai' }}
                 </div>
             </div>
         </div>

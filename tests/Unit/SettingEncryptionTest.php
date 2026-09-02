@@ -14,14 +14,14 @@ test('plain text settings round-trip without encryption', function (): void {
         'type' => Setting::TYPE_TEXT,
     ]);
 
-    $setting->setValue('NewsPilot AI');
+    $setting->setValue('Rupantrix');
     $setting->save();
 
     // Raw DB column should be a JSON-encoded plain string.
     $raw = Setting::query()->where('key', 'site.name')->value('value');
-    expect($raw)->toBe('"NewsPilot AI"');
+    expect($raw)->toBe('"Rupantrix"');
 
-    expect($setting->fresh()->getValue())->toBe('NewsPilot AI');
+    expect($setting->fresh()->getValue())->toBe('Rupantrix');
 });
 
 test('encrypted settings round-trip via Crypt and are not stored as plaintext', function (): void {

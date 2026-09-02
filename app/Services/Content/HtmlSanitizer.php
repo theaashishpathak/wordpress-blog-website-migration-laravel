@@ -97,7 +97,7 @@ final class HtmlSanitizer
         // DefinitionID + DefinitionRev are required when the cache is
         // enabled; bump the rev whenever this definition changes so the
         // cached definition is regenerated.
-        $config->set('HTML.DefinitionID', 'newspilot.content.v1');
+        $config->set('HTML.DefinitionID', 'Rupantrix.content.v1');
         $config->set('HTML.DefinitionRev', 1);
         if ($def = $config->maybeGetRawHTMLDefinition()) {
             $def->addElement('figure', 'Block', 'Flow', 'Common');

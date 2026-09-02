@@ -25,6 +25,19 @@
             </button>
         @endcanany
 
+        {{-- Theme Switcher (Dark / Light toggle) --}}
+        <button type="button" x-data
+            x-on:click="
+                const root = document.documentElement;
+                const isDark = root.classList.toggle('dark');
+                localStorage.setItem('crm-theme', isDark ? 'dark' : 'light');
+            "
+            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            title="Toggle Dark / Light Theme" aria-label="Toggle theme">
+            <i data-lucide="moon" class="h-4 w-4 dark:hidden"></i>
+            <i data-lucide="sun" class="hidden h-4 w-4 dark:block"></i>
+        </button>
+
         <livewire:notification-bell />
 
         <div class="relative">
@@ -32,7 +45,7 @@
                 <img src="{{ auth()->user()?->avatarUrl() }}" alt="User" class="h-8 w-8 rounded-full object-cover">
                 <div class="hidden text-left sm:block">
                     <div class="text-sm font-semibold">{{ auth()->user()?->name ?? 'Admin' }}</div>
-                    <div class="text-xs text-slate-500">{{ auth()->user()?->email ?? 'admin@newspilot.ai' }}</div>
+                    <div class="text-xs text-slate-500">{{ auth()->user()?->email ?? 'admin@Rupantrix.ai' }}</div>
                 </div>
                 <i data-lucide="chevron-down" class="h-4 w-4 text-slate-500"></i>
             </button>

@@ -61,7 +61,7 @@ class PermissionSeeder extends Seeder
         ]);
         $superAdminRole->syncPermissions($allPermissionNames);
 
-        // 4. NewsPilot newsroom roles — assigned only the permissions they need.
+        // 4. Rupantrix newsroom roles — assigned only the permissions they need.
         foreach ($this->newsroomRoles() as $roleName => $permissions) {
             $role = Role::query()->firstOrCreate([
                 'name' => $roleName,
@@ -89,7 +89,7 @@ class PermissionSeeder extends Seeder
     }
 
     /**
-     * Default newsroom role → permission mapping for NewsPilot AI.
+     * Default newsroom role → permission mapping for Rupantrix.
      *
      * @return array<string, list<string>>
      */

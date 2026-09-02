@@ -185,7 +185,7 @@
                     </label>
                     <input type="url"
                            wire:model="seoCanonicalUrl"
-                           placeholder="https://example.com/canonical-path"
+                           placeholder="{{ url('/' . ($this->slug ?: 'post-slug')) }}"
                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-mono outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950">
                     @error('seoCanonicalUrl') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                 </div>

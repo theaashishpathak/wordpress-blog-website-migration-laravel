@@ -35,7 +35,7 @@ test('returns SEOMetaResult with parsed fields and truncated lengths', function 
             content: json_encode([
                 'meta_title' => $longTitle,
                 'meta_description' => 'A solid description.',
-                'tags' => ['ai', 'tools', 'newspilot'],
+                'tags' => ['ai', 'tools', 'Rupantrix'],
                 'slug' => 'AI Tools 2026 Edition',
             ]),
             usage: new TokenUsage(50, 100, 150, 0.001),
@@ -53,7 +53,7 @@ test('returns SEOMetaResult with parsed fields and truncated lengths', function 
     expect($result)->toBeInstanceOf(SEOMetaResult::class);
     expect(mb_strlen($result->metaTitle))->toBeLessThanOrEqual(60);
     expect($result->metaDescription)->toBe('A solid description.');
-    expect($result->tags)->toBe(['ai', 'tools', 'newspilot']);
+    expect($result->tags)->toBe(['ai', 'tools', 'Rupantrix']);
     expect($result->slug)->toBe('AI Tools 2026 Edition');
 });
 

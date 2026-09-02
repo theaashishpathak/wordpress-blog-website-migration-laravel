@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 // -------------------------------------------------------------------------
-// NewsPilot AI — Frontend (Phase 5)
+// Rupantrix — Frontend (Phase 5)
 // -------------------------------------------------------------------------
 
 // Sitemap + robots + feeds — always at root regardless of locale
@@ -41,46 +41,31 @@ Route::get('/ads/click/{creative}', \App\Http\Controllers\Frontend\AdClickContro
     ->whereNumber('creative')
     ->name('ads.click');
 
-// Frontend group with optional /{locale} prefix. The SetLocale middleware
-// already picks up the `locale` route parameter; the regex constraint
-// ensures a 2–5 char code matches "en" / "bn" / "en-US" but not "post" etc.
+// -------------------------------------------------------------------------
+// Rupantrix — Clean Frontend Routes (Default Locale)
+// -------------------------------------------------------------------------
+Route::get('/', Home::class)->name('frontend.home');
+Route::get('/search', Search::class)->name('frontend.search');
+Route::get('/author/{user}', AuthorShow::class)->whereNumber('user')->name('frontend.author');
+Route::get('/tags/{tag:slug}', TagShow::class)->name('frontend.tag');
+Route::get('/category/{slug}', CategoryShow::class)->name('frontend.category');
+Route::get('/page/{slug}', PageShow::class)->name('frontend.page');
+
+// -------------------------------------------------------------------------
+// Rupantrix — Multi-language Localized Routes (Secondary Locales)
+// -------------------------------------------------------------------------
 Route::group([
-    'prefix' => '{locale?}',
+    'prefix' => '{locale}',
     'where' => ['locale' => '[a-z]{2}(-[A-Z]{2})?'],
 ], function (): void {
-    Route::get('/', Home::class)->name('frontend.home');
-    Route::get('/search', Search::class)->name('frontend.search');
-
-    // Locale-prefixed RSS feeds. The root-level /feed.xml + /category/{slug}.rss
-    // routes above remain for backward-compat with consumers that don't pass
-    // a locale; here we expose the same handlers under the locale prefix so
-    // /en/feed.xml etc. resolve too. The SetLocale middleware picks up the
-    // {locale} param so the FeedController already gets the right language.
+    Route::get('/', Home::class);
+    Route::get('/search', Search::class);
     Route::get('/feed.xml', [FeedController::class, 'global'])->name('frontend.feed.rss.localized');
     Route::get('/category/{slug}.rss', [FeedController::class, 'category'])->name('frontend.feed.category.localized');
-
-    // Author profile — /author/{id}
-    Route::get('/author/{user}', AuthorShow::class)
-        ->whereNumber('user')
-        ->name('frontend.author');
-
-    // Tag via Livewire
-    Route::get('/tags/{tag:slug}', TagShow::class)->name('frontend.tag');
-
-    // Category, Page, and Post are routed directly to the component class
-    // so Livewire renders them as full-page responses (layout + scripts).
-    //
-    // Previously these used `Livewire::mount(...)` inside a closure which
-    // emits ONLY the component fragment — no `<html>`, no `<head>`, no
-    // CSS link. The slug-to-model lookup now lives in each component's
-    // mount() method, keeping routes thin and the layout applied.
-    Route::get('/category/{slug}', CategoryShow::class)->name('frontend.category');
-
-    Route::get('/page/{slug}', PageShow::class)->name('frontend.page');
-
-    Route::get('/{slug}', PostShow::class)
-        ->where('slug', '[a-z0-9][a-z0-9-]*')
-        ->name('frontend.post.show');
+    Route::get('/author/{user}', AuthorShow::class)->whereNumber('user');
+    Route::get('/tags/{tag:slug}', TagShow::class);
+    Route::get('/category/{slug}', CategoryShow::class);
+    Route::get('/page/{slug}', PageShow::class);
 });
 
 // -------------------------------------------------------------------------
@@ -116,11 +101,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         }
 
         $isAuthorOnly = $user?->can('posts.create')
-            && ! ($user->hasRole(['Super Admin', 'Admin']));
+            && ! ($user->hasRole(['Super Admin', 'Admin', 'Super-Admin', 'super_admin', 'admin']));
 
         $class = $isAuthorOnly
             ? \App\Livewire\Author\Dashboard::class
-            : MyDashboard::class;
+            : \App\Livewire\Admin\Dashboards\SuperAdminDashboard::class;
 
         // Calling __invoke on the resolved Livewire component renders it as
         // a full-page route response (layout + scripts), which is what
@@ -202,3 +187,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 require __DIR__.'/admin.php';
 require __DIR__.'/settings.php';
+
+// -------------------------------------------------------------------------
+// Catch-all Post Show Route (Must remain at the very end of web.php)
+// -------------------------------------------------------------------------
+Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9][a-z0-9-]*')->name('frontend.post.show');
+
+Route::group([
+    'prefix' => '{locale}',
+    'where' => ['locale' => '[a-z]{2}(-[A-Z]{2})?'],
+], function (): void {
+    Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9][a-z0-9-]*');
+});
+

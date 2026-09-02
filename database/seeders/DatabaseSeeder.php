@@ -32,11 +32,11 @@ class DatabaseSeeder extends Seeder
         if ($shouldSeedDemo) {
             $this->call(DemoDataSeeder::class);
 
-            // Rich NewsPilot demo — content, ads, RSS, subscribers.
-            // Toggle off by setting `SEED_NEWSPILOT_DEMO=false` for
+            // Rich Rupantrix demo — content, ads, RSS, subscribers.
+            // Toggle off by setting `SEED_Rupantrix_DEMO=false` for
             // installs that just want the bare admin shell.
-            if (env('SEED_NEWSPILOT_DEMO', 'true') !== 'false') {
-                $this->call(NewsPilotDemoSeeder::class);
+            if (env('SEED_Rupantrix_DEMO', 'true') !== 'false') {
+                $this->call(RupantrixDemoSeeder::class);
 
                 // Visitor portal engagement seed — bookmarks, history,
                 // follows, comments, reactions, highlights, notifications.
@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
         $line = str_repeat('═', 64);
         $this->command->info('');
         $this->command->info($line);
-        $this->command->info('  NewsPilot demo seed complete');
+        $this->command->info('  Rupantrix demo seed complete');
         $this->command->info($line);
         $this->command->info(sprintf(
             '  %d users  ·  %d posts  ·  %d comments  ·  %d subscribers',
@@ -88,12 +88,12 @@ class DatabaseSeeder extends Seeder
         $this->command->info('      commuter@demo.com      Mid-tier       (moderate activity)');
         $this->command->info('      newbie@demo.com        Fresh signup   (empty states)');
         $this->command->info('');
-        $this->command->info('    NewsPilot editorial team');
-        $this->command->info('      superadmin@newspilot.test    Super Admin');
-        $this->command->info('      admin@newspilot.test         Admin');
-        $this->command->info('      editor@newspilot.test        Editor');
-        $this->command->info('      jane.reporter@newspilot.test Author');
-        $this->command->info('      …plus 7 more authors. See NewsPilotDemoSeeder.');
+        $this->command->info('    Rupantrix editorial team');
+        $this->command->info('      superadmin@Rupantrix.test    Super Admin');
+        $this->command->info('      admin@Rupantrix.test         Admin');
+        $this->command->info('      editor@Rupantrix.test        Editor');
+        $this->command->info('      jane.reporter@Rupantrix.test Author');
+        $this->command->info('      …plus 7 more authors. See RupantrixDemoSeeder.');
         $this->command->info('');
         $this->command->info($line);
         $this->command->info('');

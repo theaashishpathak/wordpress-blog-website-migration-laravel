@@ -22,7 +22,7 @@
     $slug = $hasTranslation ? $translation->slug : '';
     $excerpt = $hasTranslation ? ($translation->excerpt ?? '') : '';
     $url = $hasTranslation
-        ? route('frontend.post.show', ['locale' => $locale?->code, 'slug' => $slug])
+        ? route('frontend.post.show', ['slug' => $slug])
         : '#';
     $featured = $post->featuredImage;
 
@@ -112,7 +112,7 @@
         </a>
         <div class="min-w-0 flex-1">
             @if ($showCategory && $post->category)
-                <a href="{{ route('frontend.category', ['locale' => $locale?->code, 'slug' => $post->category->translate('slug')]) }}"
+                <a href="{{ route('frontend.category', ['slug' => $post->category->translate('slug')]) }}"
                    class="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500 hover:text-emerald-700 hover:underline dark:text-slate-400 dark:hover:text-emerald-300">
                     {{ $post->category->translate('name') ?? '#'.$post->category_id }}
                 </a>
@@ -208,7 +208,7 @@
         @if (! in_array($size, ['lg', 'xl']))
             <div class="flex flex-1 flex-col gap-2 {{ $sizeMap['pad'] }}">
                 @if ($showCategory && $post->category)
-                    <a href="{{ route('frontend.category', ['locale' => $locale?->code, 'slug' => $post->category->translate('slug')]) }}"
+                    <a href="{{ route('frontend.category', ['slug' => $post->category->translate('slug')]) }}"
                        class="inline-flex w-fit items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 hover:text-emerald-700 hover:underline dark:text-slate-400 dark:hover:text-emerald-300">
                         @if ($post->category->icon)
                             <i data-lucide="{{ $post->category->icon }}" class="h-3 w-3"></i>

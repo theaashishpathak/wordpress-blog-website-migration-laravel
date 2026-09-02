@@ -1,5 +1,4 @@
 @php
-    $locale = app(\App\Support\LocaleResolver::class)->current();
     $name = $category->translate('name') ?? '#'.$category->id;
     $description = $category->translate('description');
     $color = $category->color ?? '#4f46e5';
@@ -12,7 +11,7 @@
         <div class="relative mx-auto max-w-7xl px-4 py-12 lg:py-16">
             {{-- Breadcrumb --}}
             <nav class="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}" class="transition hover:text-emerald-700">Home</a>
+                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700">Home</a>
                 <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300"></i>
                 <span class="text-slate-400">Categories</span>
             </nav>
@@ -51,7 +50,7 @@
                 <i data-lucide="folder-open" class="mx-auto h-12 w-12 text-slate-300"></i>
                 <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">No articles yet</h3>
                 <p class="mt-1 text-sm text-slate-500">Check back soon — new stories are added daily.</p>
-                <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}" class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline">
+                <a href="{{ route('frontend.home') }}" class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline">
                     Back to home <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                 </a>
             </div>

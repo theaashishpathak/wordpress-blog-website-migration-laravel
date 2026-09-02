@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureVisitorPortal;
+use App\Http\Middleware\HandleRedirects;
 use App\Http\Middleware\PreventDemoModification;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -24,10 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'demo' => PreventDemoModification::class,
             'locale' => SetLocale::class,
             'visitor' => EnsureVisitorPortal::class,
+            'redirects' => HandleRedirects::class,
         ]);
 
         // Globally block write requests when demo mode is active.
         $middleware->web(append: [
+            HandleRedirects::class,
             PreventDemoModification::class,
             SetLocale::class,
         ]);

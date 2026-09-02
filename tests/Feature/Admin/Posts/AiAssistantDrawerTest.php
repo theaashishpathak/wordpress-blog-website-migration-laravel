@@ -71,12 +71,12 @@ test('openFor sets mode and seeds inputs from payload', function (): void {
             'mode' => 'article',
             'locale' => 'en',
             'topic' => 'AI in 2026',
-            'focus_keyword' => 'newspilot',
+            'focus_keyword' => 'Rupantrix',
         ])
         ->assertSet('open', true)
         ->assertSet('mode', 'article')
         ->assertSet('topic', 'AI in 2026')
-        ->assertSet('focusKeyword', 'newspilot');
+        ->assertSet('focusKeyword', 'Rupantrix');
 });
 
 test('generateArticle calls AIManager and stores output', function (): void {

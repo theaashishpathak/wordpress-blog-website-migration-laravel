@@ -1,6 +1,6 @@
 @php
     $settings = app(\App\Services\SettingService::class);
-    $companyName = $settings->get('company.name') ?: config('app.name', 'NewsPilot AI');
+    $companyName = $settings->get('company.name') ?: config('app.name', 'Rupantrix');
     $logoLight = $settings->get('branding.logo');
     $logoLightUrl = $logoLight ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoLight) : null;
 

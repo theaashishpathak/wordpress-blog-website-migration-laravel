@@ -1,11 +1,7 @@
-@php
-    $locale = app(\App\Support\LocaleResolver::class)->current();
-@endphp
-
 <div>
     <article class="mx-auto max-w-3xl px-4 py-8 lg:py-12">
         <nav class="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500" aria-label="Breadcrumb">
-            <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}" class="transition hover:text-emerald-700">Home</a>
+            <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700">Home</a>
             <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300"></i>
             <span class="truncate text-slate-400">{{ \Illuminate\Support\Str::limit($translation->title, 40) }}</span>
         </nav>

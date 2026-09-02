@@ -42,6 +42,13 @@ class SetLocale
         App::setLocale($resolved->code);
         $this->resolver->setCurrent($resolved);
 
+        $defaultLang = $this->resolver->default();
+        if ($resolved->code === ($defaultLang?->code ?? 'en')) {
+            \Illuminate\Support\Facades\URL::defaults(['locale' => null]);
+        } else {
+            \Illuminate\Support\Facades\URL::defaults(['locale' => $resolved->code]);
+        }
+
         if ($resolved->locale_php !== null && $resolved->locale_php !== '') {
             // Carbon / number formatter localization hook.
             \Illuminate\Support\Carbon::setLocale($resolved->locale_php);

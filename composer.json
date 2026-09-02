@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "newspilot-ai/app",
+    "name": "Rupantrix-ai/app",
     "type": "project",
-    "description": "NewsPilot AI — AI-powered multi-language news & magazine CMS built on Laravel + Livewire.",
+    "description": "Rupantrix — AI-powered multi-language news & magazine CMS built on Laravel + Livewire.",
     "keywords": [
         "laravel",
         "livewire",

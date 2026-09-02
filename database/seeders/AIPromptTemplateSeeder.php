@@ -8,7 +8,7 @@ use App\Models\AIPromptTemplate;
 use Illuminate\Database\Seeder;
 
 /**
- * Seed NewsPilot's core prompt templates in English and Bangla.
+ * Seed Rupantrix's core prompt templates in English and Bangla.
  *
  * Versioning: PromptBuilder picks the latest `is_active` row per
  * (key, locale). Bump the VERSION constant whenever the templates here

@@ -24,6 +24,23 @@
 
 /*
 |--------------------------------------------------------------------------
+| Magazine Layout Grid
+|--------------------------------------------------------------------------
+*/
+.magazine-grid {
+    display: grid;
+    gap: 2rem;
+    align-items: start;
+}
+@media (min-width: 1024px) {
+    .magazine-grid {
+        grid-template-columns: minmax(0, 1fr) 370px;
+        gap: 3.5rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
 | Prose (article body) — lightweight replacement for @tailwindcss/typography
 |--------------------------------------------------------------------------
 | The frontend post-show view applies `prose prose-lg dark:prose-invert`

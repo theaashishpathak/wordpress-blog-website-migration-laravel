@@ -23,7 +23,7 @@ class PermissionGroupSeeder extends Seeder
         'settings'       => 'Settings',
         'logs'           => 'Audit Logs',
 
-        // NewsPilot AI domain groups (Phase 1)
+        // Rupantrix domain groups (Phase 1)
         'content'        => 'Content (Posts)',
         'news'           => 'News',
         'taxonomy'       => 'Categories & Tags',

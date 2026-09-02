@@ -13,7 +13,7 @@
             }());
         </script>
 
-        <title>{{ ($title ?? 'Portal') . ' - ' . config('app.name', 'NewsPilot AI') }}</title>
+        <title>{{ ($title ?? 'Portal') . ' - ' . config('app.name', 'Rupantrix') }}</title>
 
         @include('partials.branding')
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

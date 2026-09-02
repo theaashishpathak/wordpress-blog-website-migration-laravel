@@ -27,7 +27,7 @@ test('seoable morphs to its owner', function (): void {
 
 test('schema_data is cast to and from array', function (): void {
     $meta = SeoMeta::factory()->faqPage([
-        ['@type' => 'Question', 'name' => 'What is NewsPilot?'],
+        ['@type' => 'Question', 'name' => 'What is Rupantrix?'],
         ['@type' => 'Question', 'name' => 'How does AI write articles?'],
     ])->create();
 

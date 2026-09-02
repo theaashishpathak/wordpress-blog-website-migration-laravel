@@ -34,7 +34,7 @@ class NewFollowerNotification extends Notification
         return (new MailMessage)
             ->subject($this->follower->name.' started following you')
             ->greeting('Hi '.$notifiable->name.',')
-            ->line($this->follower->name.' just started following you on NewsPilot.')
+            ->line($this->follower->name.' just started following you on Rupantrix.')
             ->action('View your followers', route('visitor.following.users', ['tab' => 'followers']));
     }
 

@@ -7,7 +7,7 @@ declare(strict_types=1);
 | Architecture Tests
 |--------------------------------------------------------------------------
 |
-| Enforces NewsPilot AI layer boundaries. These tests run as part of the
+| Enforces Rupantrix layer boundaries. These tests run as part of the
 | regular `php artisan test` suite. Any PR that violates a rule will fail
 | CI — the only ways to "fix" a failure are to (a) restructure the code
 | to honour the boundary, or (b) get team agreement to relax the rule by

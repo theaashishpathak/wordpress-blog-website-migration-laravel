@@ -1,5 +1,4 @@
 @php
-    $locale = app(\App\Support\LocaleResolver::class)->current();
     $featured = $post->featuredImage;
 
     // "Usable" if Media::isImage() approves, or — for legacy rows / partial
@@ -50,7 +49,7 @@
         <div class="mx-auto max-w-7xl px-4 pt-8 pb-4 lg:pt-12">
             {{-- Breadcrumb --}}
             <nav class="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}"
+                <a href="{{ route('frontend.home') }}"
                     class="transition hover:text-emerald-600 dark:hover:text-emerald-400">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -62,7 +61,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
                 @if ($post->category)
-                    <a href="{{ route('frontend.category', ['locale' => $locale?->code, 'slug' => $post->category->translate('slug')]) }}"
+                    <a href="{{ route('frontend.category', ['slug' => $post->category->translate('slug')]) }}"
                         class="transition hover:text-emerald-600 dark:hover:text-emerald-400">
                         {{ $post->category->translate('name') }}
                     </a>
@@ -85,7 +84,7 @@
                     </span>
                 @endif
                 @if ($post->category)
-                    <a href="{{ route('frontend.category', ['locale' => $locale?->code, 'slug' => $post->category->translate('slug')]) }}"
+                    <a href="{{ route('frontend.category', ['slug' => $post->category->translate('slug')]) }}"
                         class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-700 transition hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30">
                         @if ($post->category->icon)
                             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -142,7 +141,7 @@
             {{-- Byline --}}
             <div class="mt-6 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6 dark:border-slate-800">
                 @if ($post->author)
-                    <a href="{{ route('frontend.author', ['locale' => $locale?->code, 'user' => $post->author->id]) }}"
+                    <a href="{{ route('frontend.author', ['user' => $post->author->id]) }}"
                         class="group flex items-center gap-3">
                         <span
                             class="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-sm font-black uppercase text-white ring-2 ring-white shadow-lg transition group-hover:scale-105 dark:ring-slate-800">
@@ -251,7 +250,7 @@
                             <span
                                 class="mr-2 text-[11px] font-black uppercase tracking-wider text-slate-400">Tags</span>
                             @foreach ($this->tags as $tag)
-                                <a href="{{ route('frontend.tag', ['locale' => $locale?->code, 'tag' => $tag->slug]) }}"
+                                <a href="{{ route('frontend.tag', ['tag' => $tag->slug]) }}"
                                     class="rounded-full bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-emerald-100 hover:text-emerald-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300">
                                     #{{ $tag->translate('name') ?? $tag->name }}
                                 </a>
@@ -323,14 +322,14 @@
                         <section
                             class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                             <div class="flex items-start gap-5">
-                                <a href="{{ route('frontend.author', ['locale' => $locale?->code, 'user' => $post->author->id]) }}"
+                                <a href="{{ route('frontend.author', ['user' => $post->author->id]) }}"
                                     class="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-xl font-black uppercase text-white ring-2 ring-white shadow-lg transition hover:scale-105 dark:ring-slate-800">
                                     {{ mb_substr($post->author->name, 0, 1) }}
                                 </a>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Written by
                                     </p>
-                                    <a href="{{ route('frontend.author', ['locale' => $locale?->code, 'user' => $post->author->id]) }}"
+                                    <a href="{{ route('frontend.author', ['user' => $post->author->id]) }}"
                                         class="text-xl font-black tracking-tight text-slate-900 hover:text-emerald-600 dark:text-slate-100 dark:hover:text-emerald-400"
                                         style="font-family: 'Playfair Display', serif;">
                                         {{ $post->author->name }}
@@ -339,7 +338,7 @@
                                         <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                                             {{ $post->author->bio }}</p>
                                     @endif
-                                    <a href="{{ route('frontend.author', ['locale' => $locale?->code, 'user' => $post->author->id]) }}"
+                                    <a href="{{ route('frontend.author', ['user' => $post->author->id]) }}"
                                         class="mt-2 inline-flex items-center gap-1 text-sm font-bold text-emerald-600 hover:underline dark:text-emerald-400">
                                         View all posts
                                         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24"
@@ -397,7 +396,7 @@
                                     {{ $post->author->bio }}
                                 </p>
                             @endif
-                            <a href="{{ route('frontend.author', ['locale' => $locale?->code, 'user' => $post->author->id]) }}"
+                            <a href="{{ route('frontend.author', ['user' => $post->author->id]) }}"
                                 class="mt-3 inline-flex items-center gap-1 text-sm font-bold text-emerald-600 hover:underline dark:text-emerald-400">
                                 View profile
                                 <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -425,7 +424,7 @@
                             </h3>
                             <div class="space-y-2">
                                 @foreach ($popularCategory as $category)
-                                    <a href="{{ route('frontend.category', ['locale' => $locale?->code, 'slug' => $category->translate('slug')]) }}"
+                                    <a href="{{ route('frontend.category', ['slug' => $category->translate('slug')]) }}"
                                         class="group flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5 transition hover:bg-emerald-50 dark:bg-slate-800/50 dark:hover:bg-emerald-500/10">
                                         <span
                                             class="text-sm font-semibold text-slate-700 transition group-hover:text-emerald-600 dark:text-slate-300 dark:group-hover:text-emerald-400">
@@ -458,7 +457,7 @@
                             </h3>
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($popularTags as $tag)
-                                    <a href="{{ route('frontend.tag', ['locale' => $locale?->code, 'tag' => $tag->slug]) }}"
+                                    <a href="{{ route('frontend.tag', ['tag' => $tag->slug]) }}"
                                         class="inline-flex items-center rounded-full bg-slate-100 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-900 hover:text-white dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-100 dark:hover:text-slate-900">
                                         #{{ $tag->slug }}
                                     </a>

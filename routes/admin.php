@@ -78,7 +78,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
     });
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Content / Posts module (Phase 4A)
+    // Rupantrix — Content / Posts module (Phase 4A)
     // -------------------------------------------------------------------------
 
     Route::prefix('posts')->name('admin.posts.')->group(function (): void {
@@ -100,11 +100,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
     });
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Editorial Workflow (Phase 4C)
+    // Rupantrix — Editorial Workflow (Phase 4C)
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Analytics dashboards (Phase 7-12)
+    // Rupantrix — Analytics dashboards (Phase 7-12)
     // -------------------------------------------------------------------------
 
     Route::prefix('dashboards')->name('admin.dashboards.')->group(function (): void {
@@ -133,7 +133,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
     });
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — AI Studio (Phase 7-11)
+    // Rupantrix — AI Studio (Phase 7-11)
     // -------------------------------------------------------------------------
 
     Route::prefix('ai')->name('admin.ai.')->group(function (): void {
@@ -151,7 +151,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
     });
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — SEO Tools (Phase 7-11)
+    // Rupantrix — SEO Tools (Phase 7-11)
     // -------------------------------------------------------------------------
 
     Route::prefix('seo')->name('admin.seo.')->group(function (): void {
@@ -171,7 +171,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.posts.revisions');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Categories (Phase 4D)
+    // Rupantrix — Categories (Phase 4D)
     // -------------------------------------------------------------------------
 
     Route::prefix('categories')->name('admin.categories.')->group(function (): void {
@@ -189,7 +189,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
     });
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Languages (Phase 4D)
+    // Rupantrix — Languages (Phase 4D)
     // -------------------------------------------------------------------------
 
     Route::get('/languages', \App\Livewire\Admin\Languages\Index::class)
@@ -197,7 +197,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.languages.index');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Tags (Phase 4D)
+    // Rupantrix — Tags (Phase 4D)
     // -------------------------------------------------------------------------
 
     Route::get('/tags', \App\Livewire\Admin\Tags\Index::class)
@@ -205,7 +205,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.tags.index');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Newsletter (Phase 6A)
+    // Rupantrix — Newsletter (Phase 6A)
     // -------------------------------------------------------------------------
 
     Route::get('/newsletter/subscribers', \App\Livewire\Admin\Newsletter\Subscribers::class)
@@ -213,7 +213,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.newsletter.subscribers');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Comments moderation (Phase 6B)
+    // Rupantrix — Comments moderation (Phase 6B)
     // -------------------------------------------------------------------------
 
     Route::get('/comments', \App\Livewire\Admin\Comments\Index::class)
@@ -221,7 +221,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.comments.index');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Ad Manager (Phase 6C)
+    // Rupantrix — Ad Manager (Phase 6C)
     // -------------------------------------------------------------------------
 
     Route::get('/ads', \App\Livewire\Admin\Ads\Index::class)
@@ -229,7 +229,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.ads.index');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — RSS Importer (Phase 6D)
+    // Rupantrix — RSS Importer (Phase 6D)
     // -------------------------------------------------------------------------
 
     Route::get('/imports/sources', \App\Livewire\Admin\Imports\Sources::class)
@@ -237,7 +237,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.imports.sources');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Media Library (Phase 4D)
+    // Rupantrix — Media Library (Phase 4D)
     // -------------------------------------------------------------------------
 
     Route::get('/media', \App\Livewire\Admin\Media\Index::class)
@@ -245,7 +245,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
         ->name('admin.media.index');
 
     // -------------------------------------------------------------------------
-    // NewsPilot AI — Pages (Phase 4D)
+    // Rupantrix — Pages (Phase 4D)
     // -------------------------------------------------------------------------
 
     Route::prefix('pages')->name('admin.pages.')->group(function (): void {

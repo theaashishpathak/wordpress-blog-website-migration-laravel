@@ -28,7 +28,7 @@ class NewsletterConfirmationMail extends Mailable
     public function envelope(): Envelope
     {
         $settings = app(SettingService::class);
-        $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'NewsPilot AI'));
+        $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'Rupantrix'));
 
         return new Envelope(
             subject: "Confirm your subscription to {$siteName}",

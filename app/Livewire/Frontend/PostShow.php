@@ -174,12 +174,31 @@ class PostShow extends Component
         $featured = $this->post->featuredImage;
         $author = $this->post->author;
 
+        $metaTitle = $seo?->meta_title ?: ($this->translation->meta_title ?: $this->translation->title);
+        $metaDescription = $seo?->meta_description
+            ?: ($this->translation->meta_description
+                ?: ($this->translation->excerpt
+                    ?: \Illuminate\Support\Str::limit(strip_tags((string) $this->translation->content), 160)));
+        $canonicalUrl = $seo?->canonical_url ?: ($this->translation->canonical_url ?: url()->current());
+        $robots = $seo?->robots ?: 'index, follow';
+        $ogImage = $seo?->og_image ?: ($this->translation->og_image ?: $featured?->url());
+
         return view('livewire.frontend.post-show', [
-            'metaTitle' => $this->translation->meta_title ?: $this->translation->title,
-            'metaDescription' => $this->translation->meta_description
-                ?: $this->translation->excerpt
-                ?: \Illuminate\Support\Str::limit(strip_tags((string) $this->translation->content), 160),
-            'ogImage' => $featured?->url(),
+            'metaTitle' => $metaTitle,
+            'metaDescription' => $metaDescription,
+            'ogImage' => $ogImage,
+            'jsonLd' => $this->buildArticleJsonLd($seo, $featured, $author),
+        ])->layout('frontend.layouts.app', [
+            'title' => $metaTitle,
+            'metaDescription' => $metaDescription,
+            'canonicalUrl' => $canonicalUrl,
+            'robots' => $robots,
+            'ogTitle' => $seo?->og_title ?: $metaTitle,
+            'ogDescription' => $seo?->og_description ?: $metaDescription,
+            'ogImage' => $ogImage,
+            'twitterTitle' => $seo?->twitter_title ?: ($seo?->og_title ?: $metaTitle),
+            'twitterDescription' => $seo?->twitter_description ?: ($seo?->og_description ?: $metaDescription),
+            'twitterImage' => $seo?->twitter_image ?: $ogImage,
             'jsonLd' => $this->buildArticleJsonLd($seo, $featured, $author),
         ]);
     }
@@ -192,7 +211,7 @@ class PostShow extends Component
             'headline' => $this->translation->title,
             'datePublished' => $this->post->published_at?->toIso8601String(),
             'dateModified' => $this->post->updated_at?->toIso8601String(),
-            'url' => url()->current(),
+            'url' => $seo?->canonical_url ?: url()->current(),
             'inLanguage' => $this->translation->language?->code,
         ];
 

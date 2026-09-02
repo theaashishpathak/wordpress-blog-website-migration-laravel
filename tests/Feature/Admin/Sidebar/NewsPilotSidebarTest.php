@@ -45,7 +45,7 @@ function sidebarUser(string $roleName): User
  |   data-lucide="globe"    → Languages link icon
  */
 
-test('super admin sees every NewsPilot sidebar group', function (): void {
+test('super admin sees every Rupantrix sidebar group', function (): void {
     $user = sidebarUser('Super Admin');
 
     $this->actingAs($user)

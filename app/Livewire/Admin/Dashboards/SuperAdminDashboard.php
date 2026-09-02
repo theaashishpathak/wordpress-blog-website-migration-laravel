@@ -32,7 +32,7 @@ use Livewire\Component;
  * - Quick management actions for all content types
  */
 #[Layout('layouts.app')]
-#[Title('Super Admin Dashboard')]
+#[Title('Dashboard')]
 class SuperAdminDashboard extends Component
 {
     public User $me;
@@ -42,7 +42,7 @@ class SuperAdminDashboard extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         abort_unless(
-            $user->hasAnyRole(['Super Admin', 'Super-Admin', 'super_admin', 'Admin', 'admin']),
+            $user->hasAnyRole(['Super Admin', 'Super-Admin', 'super_admin', 'Admin', 'admin']) || $user->can('dashboard.view') || $user->can('posts.view'),
             403,
         );
 

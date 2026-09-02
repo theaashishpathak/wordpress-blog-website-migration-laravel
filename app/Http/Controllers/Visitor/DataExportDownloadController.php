@@ -27,7 +27,7 @@ class DataExportDownloadController
 
         return response()->download(
             $disk->path($export->file_path),
-            'newspilot-data-export-'.$export->id.'.zip',
+            'Rupantrix-data-export-'.$export->id.'.zip',
             ['Content-Type' => 'application/zip']
         );
     }

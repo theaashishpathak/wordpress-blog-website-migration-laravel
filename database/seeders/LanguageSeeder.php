@@ -6,7 +6,7 @@ use App\Models\Language;
 use Illuminate\Database\Seeder;
 
 /**
- * Seed the 6 starter languages NewsPilot ships with.
+ * Seed the 6 starter languages Rupantrix ships with.
  *
  * Idempotent — `code` is the unique key. Re-running the seeder updates
  * existing rows in place without duplicates. Authoritative spec:

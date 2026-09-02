@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('NewsPilot setting groups are registered in config', function (): void {
+test('Rupantrix setting groups are registered in config', function (): void {
     $groupSlugs = array_keys((array) config('settings.groups', []));
 
     $expected = [
@@ -20,7 +20,7 @@ test('NewsPilot setting groups are registered in config', function (): void {
         'file-storage-settings',
         'app-preferences',
         'security-settings',
-        // New NewsPilot domain groups
+        // New Rupantrix domain groups
         'site-settings',
         'seo-defaults',
         'ai-providers',
@@ -51,7 +51,7 @@ test('seeder writes default values via setValue so getValue can read them back',
 
     $settings = app(SettingService::class);
 
-    expect($settings->get('site.name'))->toBe('NewsPilot AI');
+    expect($settings->get('site.name'))->toBe('Rupantrix');
     expect($settings->get('site.posts_per_page'))->toBe(12);
     expect($settings->get('site.show_reading_time'))->toBeTrue();
     expect($settings->get('seo.enable_sitemap'))->toBeTrue();

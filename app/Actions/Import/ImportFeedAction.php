@@ -48,7 +48,7 @@ class ImportFeedAction
     {
         try {
             $response = Http::timeout(15)
-                ->withHeaders(['User-Agent' => 'NewsPilot AI Bot/1.0'])
+                ->withHeaders(['User-Agent' => 'Rupantrix Bot/1.0'])
                 ->get($source->feed_url);
         } catch (Throwable $e) {
             $this->markError($source, 'HTTP exception: '.$e->getMessage());

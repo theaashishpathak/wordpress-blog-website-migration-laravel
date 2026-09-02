@@ -23,13 +23,13 @@ test('complete returns deterministic placeholder content', function (): void {
     $response = $provider->complete(new CompletionRequest(
         model: 'null-stub',
         systemPrompt: 'You are a test stub.',
-        userPrompt: 'Write something about NewsPilot.',
+        userPrompt: 'Write something about Rupantrix.',
         featureKey: 'article_writer',
     ));
 
     expect($response->providerName)->toBe(NullProvider::NAME);
     expect($response->content)->toStartWith(NullProvider::PLACEHOLDER_PREFIX);
-    expect($response->content)->toContain('NewsPilot');
+    expect($response->content)->toContain('Rupantrix');
     expect($response->usage->totalTokens)->toBeGreaterThan(0);
     expect($response->usage->estimatedCostUsd)->toBe(0.0);
     expect($response->finishReason)->toBe('stop');

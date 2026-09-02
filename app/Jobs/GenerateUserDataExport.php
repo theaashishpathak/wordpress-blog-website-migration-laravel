@@ -133,7 +133,7 @@ class GenerateUserDataExport implements ShouldQueue
     private function buildReadme(\App\Models\User $user, array $payload): string
     {
         $lines = [
-            'NewsPilot AI — Personal Data Export',
+            'Rupantrix — Personal Data Export',
             '===================================',
             '',
             'Generated: '.now()->toIso8601String(),

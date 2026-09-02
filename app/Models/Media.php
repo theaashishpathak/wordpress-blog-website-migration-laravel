@@ -146,14 +146,18 @@ class Media extends Model
     public function url(): string
     {
         if ($this->path === null || $this->path === '') {
-            return '';
+            return $this->source_url ?? '';
         }
 
         if (Str::startsWith($this->path, ['http://', 'https://', '//'])) {
             return $this->path;
         }
 
-        return Storage::disk($this->disk)->url($this->path);
+        if (Storage::disk($this->disk ?: 'public')->exists($this->path)) {
+            return Storage::disk($this->disk ?: 'public')->url($this->path);
+        }
+
+        return $this->source_url ?: Storage::disk($this->disk ?: 'public')->url($this->path);
     }
 
     /**

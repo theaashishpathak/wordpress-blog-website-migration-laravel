@@ -26,14 +26,14 @@ class NotificationSeeder extends Seeder
 
         $rows = [];
 
-        // NewsPilot welcome ping for the admin.
+        // Rupantrix welcome ping for the admin.
         $rows[] = $this->buildRow(
             User::class,
             $admin->id,
             \Illuminate\Notifications\DatabaseNotification::class,
             [
                 'type' => 'system.welcome',
-                'title' => 'Welcome to NewsPilot AI',
+                'title' => 'Welcome to Rupantrix',
                 'message' => 'Roles, demo posts, categories and AI prompt templates are pre-seeded. Open the Content menu to start exploring.',
                 'icon' => 'sparkles',
                 'color' => 'indigo',

@@ -1,6 +1,6 @@
 @php
     $settings = app(\App\Services\SettingService::class);
-    $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'NewsPilot AI'));
+    $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'Rupantrix'));
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">

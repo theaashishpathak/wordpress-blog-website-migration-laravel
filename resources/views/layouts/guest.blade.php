@@ -12,7 +12,7 @@
             }());
         </script>
 
-        <title>{{ ($title ?? 'Login') . ' - ' . ($settings->get('company.name') ?: config('app.name', 'NewsPilot AI')) }}</title>
+        <title>{{ ($title ?? 'Login') . ' - ' . ($settings->get('company.name') ?: config('app.name', 'Rupantrix')) }}</title>
 
         @include('partials.branding')
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -25,7 +25,7 @@
              a "Back to site" escape hatch so visitors who landed here
              by mistake (or finished signing in elsewhere) can still
              reach the public news home. --}}
-        @php($brandName = $settings->get('site.name') ?: ($settings->get('company.name') ?: config('app.name', 'NewsPilot AI')))
+        @php($brandName = $settings->get('site.name') ?: ($settings->get('company.name') ?: config('app.name', 'Rupantrix')))
         <header class="absolute inset-x-0 top-0 z-10 px-4 py-4 sm:px-6">
             <div class="mx-auto flex max-w-6xl items-center justify-between">
                 <a href="{{ route('frontend.home') }}"

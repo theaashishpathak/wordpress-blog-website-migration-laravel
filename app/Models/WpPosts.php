@@ -46,7 +46,7 @@ class WpPosts extends Model
     |--------------------------------------------------------------------------
     | Accessors
     |--------------------------------------------------------------------------
-    | These make WordPress look like NewsPilot.
+    | These make WordPress look like Rupantrix.
     */
 
     public function getTitleAttribute()

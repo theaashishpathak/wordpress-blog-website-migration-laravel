@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * WHY THIS EXISTS:
  * All four migration services (Users, Categories, Media, Posts) share the same
  * patterns: they need the Artisan command for output, they read from the WordPress
- * DB connection, and they write to the default NewsPilot DB connection.
+ * DB connection, and they write to the default Rupantrix DB connection.
  *
  * Putting that shared logic here means each service only contains the code
  * specific to what it migrates — no duplication.
@@ -23,9 +23,9 @@ abstract class BaseMigrationService
     /**
      * WHY TWO CONNECTIONS:
      * 'wordpress' reads from your `new` database (wp_posts, wp_users, etc.)
-     * DB:: (default) writes to your `laravel` database (NewsPilot tables).
+     * DB:: (default) writes to your `laravel` database (Rupantrix tables).
      * This lets us do: $this->wp()->table('wp_posts') to read WordPress
-     * and DB::table('posts') to write to NewsPilot — in the same PHP class.
+     * and DB::table('posts') to write to Rupantrix — in the same PHP class.
      */
     protected function wp(): \Illuminate\Database\ConnectionInterface
     {

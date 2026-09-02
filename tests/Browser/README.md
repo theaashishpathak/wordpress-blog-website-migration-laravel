@@ -1,6 +1,6 @@
 # Browser tests
 
-Pest 4 browser tests covering NewsPilot's critical user journeys plus a
+Pest 4 browser tests covering Rupantrix's critical user journeys plus a
 full-suite smoke pass. Excluded from the default `php artisan test` run
 because they require the optional Pest Browser plugin + a Chromium
 binary.

@@ -127,7 +127,7 @@ return [
         ],
 
         // ---------------------------------------------------------------------
-        // NewsPilot AI domain settings (Phase 1)
+        // Rupantrix domain settings (Phase 1)
         // ---------------------------------------------------------------------
 
         'site-settings' => [
@@ -136,7 +136,7 @@ return [
             'icon' => 'globe',
             'color' => 'indigo',
             'fields' => [
-                ['key' => 'site.name', 'label' => 'Site Name', 'type' => 'text', 'default' => 'NewsPilot AI'],
+                ['key' => 'site.name', 'label' => 'Site Name', 'type' => 'text', 'default' => 'Rupantrix'],
                 ['key' => 'site.tagline', 'label' => 'Tagline', 'type' => 'text', 'default' => 'AI-powered news, blog & magazine portal'],
                 ['key' => 'site.description', 'label' => 'Default Site Description', 'type' => 'text', 'input' => 'textarea'],
                 ['key' => 'site.copyright', 'label' => 'Copyright Text', 'type' => 'text'],

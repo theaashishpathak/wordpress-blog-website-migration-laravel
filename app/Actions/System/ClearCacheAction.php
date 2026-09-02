@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
  *   - "config"   : compiled config (config:clear)
  *   - "view"     : compiled blade views (view:clear)
  *   - "route"    : route cache (route:clear)
- *   - "settings" : NewsPilot's SettingService memo (rememberForever)
+ *   - "settings" : Rupantrix's SettingService memo (rememberForever)
  *   - "all"      : everything above in sequence
  *
  * Each call records a structured log line so admins can audit who

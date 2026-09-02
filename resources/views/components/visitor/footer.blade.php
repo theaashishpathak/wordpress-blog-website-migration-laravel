@@ -1,6 +1,6 @@
 @php
     $settings = app(\App\Services\SettingService::class);
-    $companyName = $settings->get('company.name') ?: config('app.name', 'NewsPilot AI');
+    $companyName = $settings->get('company.name') ?: config('app.name', 'Rupantrix');
 @endphp
 
 <footer class="border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 dark:border-slate-800 dark:text-slate-400">

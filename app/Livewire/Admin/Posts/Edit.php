@@ -592,8 +592,26 @@ class Edit extends Component
             'allow_comments' => $this->allowComments,
             'updated_by' => $userId,
             'translations' => $this->buildTranslationRows(),
-            'tag_ids' => $this->tagIds,
+            'tag_ids' => $this->resolveTagIds(),
         ];
+    }
+
+    private function resolveTagIds(): array
+    {
+        $resolved = [];
+        foreach ($this->tagIds as $item) {
+            if (is_numeric($item) && (int) $item > 0) {
+                $resolved[] = (int) $item;
+            } elseif (is_string($item) && trim($item) !== '') {
+                $clean = trim($item);
+                $tag = Tag::firstOrCreate(
+                    ['slug' => Str::slug($clean)],
+                    ['name' => $clean, 'color' => '#64748b', 'status' => 'published']
+                );
+                $resolved[] = (int) $tag->id;
+            }
+        }
+        return array_values(array_unique($resolved));
     }
 
     /**
@@ -653,7 +671,7 @@ class Edit extends Component
             'type' => ['required', \Illuminate\Validation\Rule::in(PostType::values())],
             'categoryId' => ['nullable', 'integer', 'exists:categories,id'],
             'tagIds' => ['array'],
-            'tagIds.*' => ['integer', 'exists:tags,id'],
+            'tagIds.*' => ['nullable'],
             'visibility' => ['required', \Illuminate\Validation\Rule::in(Post::VISIBILITIES)],
             'excerpt' => ['nullable', 'string', 'max:2000'],
             'content' => ['nullable', 'string'],
@@ -689,7 +707,14 @@ class Edit extends Component
     #[Computed]
     public function tags(): \Illuminate\Support\Collection
     {
-        return Tag::query()->orderBy('id')->limit(500)->get();
+        $assigned = Tag::query()->whereIn('id', $this->tagIds)->get();
+        $other = Tag::query()
+            ->when(! empty($this->tagIds), fn ($q) => $q->whereNotIn('id', $this->tagIds))
+            ->orderBy('id')
+            ->limit(500)
+            ->get();
+
+        return $assigned->concat($other);
     }
 
     #[Computed]

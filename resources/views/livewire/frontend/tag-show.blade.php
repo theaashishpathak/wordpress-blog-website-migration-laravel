@@ -1,5 +1,4 @@
 @php
-    $locale = app(\App\Support\LocaleResolver::class)->current();
     $name = $tag->translate('name') ?? $tag->name;
     $color = $tag->color ?? '#4f46e5';
 @endphp
@@ -10,7 +9,7 @@
         <div class="pointer-events-none absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 20% 80%, {{ $color }}33 0%, transparent 50%);"></div>
         <div class="relative mx-auto max-w-7xl px-4 py-12 lg:py-14">
             <nav class="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}" class="transition hover:text-emerald-700">Home</a>
+                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700">Home</a>
                 <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300"></i>
                 <span class="text-slate-400">Tag</span>
             </nav>

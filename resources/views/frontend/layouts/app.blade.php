@@ -11,7 +11,7 @@
     {{-- Apply persisted theme before paint to avoid light/dark flash --}}
     <script>
         (function() {
-            const theme = localStorage.getItem('crm-theme') || 'system';
+            const theme = localStorage.getItem('crm-theme') || 'dark';
             const shouldUseDark = theme === 'dark' || (theme === 'system' && window.matchMedia(
                 '(prefers-color-scheme: dark)').matches);
             document.documentElement.classList.toggle('dark', shouldUseDark);
@@ -20,7 +20,7 @@
 
     @php
         $settings = app(\App\Services\SettingService::class);
-        $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'Aashish Pathak'));
+        $siteName = (string) ($settings->get('site.name') ?? 'Revision');
         $pageTitle = $title ?? $siteName;
         $metaDescription =
             $metaDescription ?? (string) ($settings->get('site.description') ?? 'Latest news and articles');
@@ -28,28 +28,27 @@
 
     <title>{{ $pageTitle }}{{ $pageTitle === $siteName ? '' : ' — ' . $siteName }}</title>
     <meta name="description" content="{{ $metaDescription }}">
+    <meta name="robots" content="{{ $robots ?? 'index, follow' }}">
 
     {{-- OG + Twitter --}}
     <meta property="og:site_name" content="{{ $siteName }}">
-    <meta property="og:title" content="{{ $pageTitle }}">
-    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:title" content="{{ $ogTitle ?? $pageTitle }}">
+    <meta property="og:description" content="{{ $ogDescription ?? $metaDescription }}">
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">
     @isset($ogImage)
         <meta property="og:image" content="{{ $ogImage }}">
-        <meta name="twitter:image" content="{{ $ogImage }}">
+        <meta name="twitter:image" content="{{ $twitterImage ?? $ogImage }}">
     @endisset
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $pageTitle }}">
-    <meta name="twitter:description" content="{{ $metaDescription }}">
+    <meta name="twitter:title" content="{{ $twitterTitle ?? ($ogTitle ?? $pageTitle) }}">
+    <meta name="twitter:description" content="{{ $twitterDescription ?? ($ogDescription ?? $metaDescription) }}">
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-png">
 
     {{-- Canonical + alternate locales --}}
-    @isset($canonicalUrl)
-        <link rel="canonical" href="{{ $canonicalUrl }}">
-    @endisset
+    <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
     @isset($alternateLocales)
         @foreach ($alternateLocales as $altLocale => $altUrl)
             <link rel="alternate" hreflang="{{ $altLocale }}" href="{{ $altUrl }}">
@@ -70,7 +69,7 @@
     @endisset
 </head>
 
-<body class="bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+<body class="bg-[#f8f9fa] font-sans text-slate-900 antialiased dark:bg-[#0d0e12] dark:text-neutral-100 transition-colors duration-200 selection:bg-neutral-800 selection:text-white">
     <a href="#main"
         class="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-indigo-600 focus:px-3 focus:py-1.5 focus:text-xs focus:font-semibold focus:text-white">
         Skip to content
@@ -86,20 +85,6 @@
 
     @livewireScripts
 
-    {{--
-            Lucide icons — pinned version (not @latest) so the CDN gives us
-            an immutable response that the browser can cache for a year.
-
-            The createIcons() call walks every <i data-lucide="..."> in the
-            DOM, so calling it on every Livewire morph used to scan the
-            entire page on every keystroke. We now:
-              1. Run it once on first paint and on full SPA navigation.
-              2. On morph.updated, scope the scan to ONLY the element that
-                 actually changed (`{ root: el }`) — Livewire 4 passes the
-                 element as the first hook argument.
-              3. Debounce overlapping morphs so a burst of updates only
-                 triggers a single rescan in the next animation frame.
-        --}}
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.js" defer></script>
     <script>
         (function() {
@@ -121,8 +106,6 @@
                     queued = false;
                     render(root);
                     rendered.add(root || document);
-                    // Allow the same root to be re-rendered later if it
-                    // gets new icons — drop after a tick.
                     setTimeout(() => rendered.delete(root || document), 250);
                 });
             };

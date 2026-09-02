@@ -1,312 +1,251 @@
 @php
     $settings = app(\App\Services\SettingService::class);
-    $siteName = (string) ($settings->get('site.name') ?? config('app.name', 'Aashish Pathak'));
-    $tagline = (string) ($settings->get('site.tagline') ?? 'Customisation By Aashish Pathak');
+    $siteName = (string) ($settings->get('site.name') ?? 'RUPANTRIX');
     $localeResolver = app(\App\Support\LocaleResolver::class);
     $currentLocale = $localeResolver->current();
-    $activeLanguages = $localeResolver->activeLanguages();
+    
+    // Fetch real top categories
+    $menuCategories = \App\Models\Category::query()
+        ->withCount(['posts' => fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value)])
+        ->having('posts_count', '>', 0)
+        ->orderByDesc('posts_count')
+        ->limit(8)
+        ->get();
 
-    $menuCategories = \App\Models\Category::query()->inMenu()->ordered()->limit(10)->get();
+    // Fetch real published pages with short clean titles
+    $menuPages = \App\Models\Page::query()
+        ->visibleIn($currentLocale?->id ?? 0)
+        ->inMenu()
+        ->ordered()
+        ->limit(6)
+        ->get()
+        ->filter(function($p) use ($currentLocale) {
+            $t = $p->translation($currentLocale?->code) ?? $p->translation();
+            return $t && mb_strlen($t->title) <= 20;
+        })
+        ->take(3);
 @endphp
 
-<header x-data="{ mobileOpen: false, searchOpen: false }"
-    class="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 dark:border-slate-800 dark:bg-slate-950/90 dark:supports-[backdrop-filter]:bg-slate-950/80">
-
-    {{-- Top utility strip — desktop only (lg+). On mobile/tablet, these
-    controls live inside the drawer to keep the header uncluttered. --}}
-    <div
-        class="hidden border-b max-w-7xl mx-auto border-slate-100 px-4 py-1.5 text-[11px] font-medium text-slate-500 dark:border-slate-800/60 lg:block">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <span class="inline-flex items-center gap-1.5">
-                <i data-lucide="calendar" class="h-3 w-3"></i>
-                {{ now()->translatedFormat('l, F j, Y') }}
-            </span>
-
-            <div class="flex items-center gap-1">
-                @if (count($activeLanguages) > 1)
-                    <div x-data="{ open: false }" class="relative">
-                        <button type="button" x-on:click="open = !open"
-                            class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-semibold transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100">
-                            <span>{{ $currentLocale?->flag_emoji ?? '🌐' }}</span>
-                            <span>{{ $currentLocale?->name ?? 'Language' }}</span>
-                            <i data-lucide="chevron-down" class="h-3 w-3 transition"
-                                x-bind:class="open && 'rotate-180'"></i>
-                        </button>
-                        <div x-show="open" x-on:click.outside="open = false" x-cloak
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="absolute right-0 z-50 mt-1.5 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-white/5">
-                            @foreach ($activeLanguages as $lang)
-                                <a href="{{ route('frontend.home', ['locale' => $lang->code]) }}" {{-- <a href="{{ route('frontend.home') }}" --}}
-                                    class="flex items-center gap-2 px-3 py-2 text-xs transition hover:bg-slate-50 dark:hover:bg-slate-800 {{ $currentLocale?->id === $lang->id ? 'bg-slate-100 font-bold text-slate-900 dark:bg-slate-800 dark:text-slate-100' : '' }}">
-                                    <span class="text-base leading-none">{{ $lang->flag_emoji ?? '🌐' }}</span>
-                                    <span class="flex-1">{{ $lang->name }}</span>
-                                    <span
-                                        class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9px] uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">{{ $lang->code }}</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                    <span class="mx-1 text-slate-300 dark:text-slate-600">·</span>
-                @endif
-
-                @auth
-                    <a href="{{ route('dashboard') }}"
-                        class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-semibold transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800">
-                        <i data-lucide="layout-dashboard" class="h-3 w-3"></i>
-                        Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-semibold transition hover:bg-slate-100 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-300">
-                        <i data-lucide="log-in" class="h-3 w-3"></i>
-                        Sign in
-                    </a>
-
-                    <a href="{{ route('register') }}"
-                        class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-semibold transition bg-emerald-700 text-white dark:hover:bg-slate-800 dark:hover:text-emerald-300">
-                        <i data-lucide="user-plus" class="h-3 w-3"></i>
-                        Sign Up
-                    </a>
-                @endauth
-            </div>
-        </div>
-    </div>
-
-    {{-- Main brand row --}}
-    <div class="mx-auto flex max-w-7xl items-center gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4">
-        {{-- Mobile menu trigger --}}
-        <button type="button" x-on:click="mobileOpen = true"
-            class="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-slate-600 transition hover:bg-slate-100 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
-            aria-label="Open menu">
-            <i data-lucide="menu" class="h-5 w-5"></i>
-        </button>
-
-        {{-- Brand — editorial monogram + serif wordmark. Truncates on
-        narrow screens to avoid pushing the right cluster off. --}}
-        <a href="{{ route('frontend.home', ['locale' => $currentLocale?->code]) }}"
-            class="flex min-w-0 flex-1 items-center gap-2.5 transition hover:opacity-90 sm:gap-3">
-            <span
-                class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-900 text-white sm:h-10 sm:w-10 dark:bg-slate-100 dark:text-slate-900">
-                <span class="text-base font-black sm:text-lg"
-                    style="font-family: 'Playfair Display', serif;">{{ mb_substr($siteName, 0, 1) }}</span>
-            </span>
-            <span class="flex min-w-0 flex-col leading-tight">
-                <span class="truncate text-base font-black tracking-tight text-slate-900 sm:text-xl dark:text-slate-100"
-                    style="font-family: 'Playfair Display', serif;">
+<header x-data="{
+        mobileOpen: false,
+        searchOpen: false,
+        isDark: document.documentElement.classList.contains('dark'),
+        toggleTheme() {
+            this.isDark = !this.isDark;
+            document.documentElement.classList.toggle('dark', this.isDark);
+            localStorage.setItem('crm-theme', this.isDark ? 'dark' : 'light');
+        }
+    }"
+    class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md dark:border-[#1d1f27] dark:bg-[#111217]/95 transition-colors duration-200">
+    <div class="mx-auto flex max-w-[1360px] items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+        
+        {{-- Brand / Logo (Left) --}}
+        <div class="flex items-center gap-6 shrink-0">
+            <a href="{{ route('frontend.home') }}" class="flex items-center gap-2.5 group">
+                <span class="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs group-hover:scale-105 transition duration-200">
+                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+                </span>
+                <span class="text-lg font-black uppercase tracking-widest text-slate-900 dark:text-white" style="font-family: 'Playfair Display', serif;">
                     {{ $siteName }}
                 </span>
-                <span
-                    class="hidden truncate text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500 lg:block dark:text-slate-400">
-                    {{ $tagline }}
-                </span>
-            </span>
-        </a>
+            </a>
+        </div>
 
-        {{-- Desktop search --}}
-        <form action="{{ route('frontend.search', ['locale' => $currentLocale?->code]) }}" method="GET"
-            class="hidden flex-1 max-w-md lg:block">
-            <div class="group relative">
-                <i data-lucide="search"
-                    class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within:text-emerald-600"></i>
-                <input type="text" name="q" placeholder="Search articles, topics, authors…"
-                    value="{{ request('q') }}"
-                    class="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:focus:bg-slate-950">
+        {{-- Center Navigation Pill (Desktop) --}}
+        <nav class="hidden md:flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100/90 px-4 py-1.5 text-xs font-bold text-slate-700 dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-300 shadow-2xs">
+            <a href="{{ route('frontend.home') }}"
+                class="rounded-full px-3 py-1 transition hover:text-slate-900 dark:hover:text-white {{ request()->routeIs('frontend.home') ? 'bg-white text-slate-900 shadow-2xs dark:bg-[#252732] dark:text-white' : '' }}">
+                Home
+            </a>
+
+            {{-- Real Categories Dropdown --}}
+            <div class="relative" x-data="{ open: false }" x-on:click.outside="open = false">
+                <button type="button" x-on:click="open = !open"
+                    class="inline-flex items-center gap-1 rounded-full px-3 py-1 transition hover:text-slate-900 dark:hover:text-white">
+                    <span>Categories</span>
+                    <i data-lucide="chevron-down" class="h-3 w-3 transition-transform" x-bind:class="open && 'rotate-180'"></i>
+                </button>
+                <div x-show="open" x-cloak
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    class="absolute left-0 mt-2.5 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-[#262832] dark:bg-[#181920]">
+                    @foreach ($menuCategories as $cat)
+                        @php($catTitle = html_entity_decode((string) ($cat->translate('name') ?? ('#' . $cat->id)), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                        <a href="{{ route('frontend.category', ['slug' => $cat->translate('slug')]) }}"
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-[#22242e]">
+                            <span class="flex items-center gap-2">
+                                @if ($cat->icon)
+                                    <i data-lucide="{{ $cat->icon }}" class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"></i>
+                                @endif
+                                <span>{{ $catTitle }}</span>
+                            </span>
+                            <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-[#22242e] dark:text-neutral-400">
+                                {{ $cat->posts_count }}
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
             </div>
-        </form>
 
-        {{-- Right cluster: mobile search, theme, subscribe CTA --}}
-        <div class="flex shrink-0 items-center gap-1 sm:gap-2">
+            {{-- Clean Real Pages Menu --}}
+            @if ($menuPages->isNotEmpty())
+                @foreach ($menuPages as $page)
+                    @php($trans = $page->translation($currentLocale?->code) ?? $page->translation())
+                    @if ($trans)
+                        @php($pageTitle = html_entity_decode((string) $trans->title, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                        <a href="{{ route('frontend.page', ['slug' => $trans->slug]) }}"
+                           class="rounded-full px-3 py-1 transition hover:text-slate-900 dark:hover:text-white">
+                            {{ $pageTitle }}
+                        </a>
+                    @endif
+                @endforeach
+            @else
+                <a href="{{ route('frontend.page', ['slug' => 'about-us']) }}" class="rounded-full px-3 py-1 transition hover:text-slate-900 dark:hover:text-white">
+                    About
+                </a>
+                <a href="{{ route('frontend.page', ['slug' => 'contact-us']) }}" class="rounded-full px-3 py-1 transition hover:text-slate-900 dark:hover:text-white">
+                    Contacts
+                </a>
+            @endif
+        </nav>
+
+        {{-- Right Controls (Search, Theme Pill, Action CTA) --}}
+        <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {{-- Search Button --}}
             <button type="button" x-on:click="searchOpen = true"
-                class="grid h-10 w-10 place-items-center rounded-lg text-slate-600 transition hover:bg-slate-100 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
-                aria-label="Search">
+                class="grid h-8 w-8 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-neutral-400 dark:hover:bg-[#1e2028] dark:hover:text-white"
+                title="Search" aria-label="Search">
                 <i data-lucide="search" class="h-4 w-4"></i>
             </button>
 
-            <button type="button" x-data
-                x-on:click="
-                        const root = document.documentElement;
-                        const isDark = root.classList.toggle('dark');
-                        localStorage.setItem('crm-theme', isDark ? 'dark' : 'light');
-                    "
-                class="hidden h-10 w-10 place-items-center rounded-lg text-slate-600 transition hover:bg-slate-100 sm:grid dark:text-slate-400 dark:hover:bg-slate-800"
-                title="Toggle theme" aria-label="Toggle theme">
-                <i data-lucide="moon" class="h-4 w-4 dark:hidden"></i>
-                <i data-lucide="sun" class="hidden h-4 w-4 dark:block"></i>
+            {{-- Sleek Theme Switcher Toggle Pill --}}
+            <button type="button" x-on:click="toggleTheme()"
+                class="relative inline-flex h-8 w-14 items-center rounded-full border border-slate-200 bg-slate-100 px-1 transition-colors duration-200 dark:border-[#2c2e3a] dark:bg-[#181920]"
+                title="Toggle Theme" aria-label="Toggle Theme">
+                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-xs transition-transform duration-200 dark:translate-x-6 dark:bg-[#262832]">
+                    <span x-show="!isDark"><i data-lucide="moon" class="h-3.5 w-3.5 text-slate-700"></i></span>
+                    <span x-show="isDark" x-cloak><i data-lucide="sun" class="h-3.5 w-3.5 text-amber-400"></i></span>
+                </span>
             </button>
 
-            {{-- Subscribe — full button from sm up, icon-only on phones --}}
-            <a href="#newsletter"
-                class="grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-white shadow-sm sm:hidden"
-                aria-label="Subscribe">
-                <i data-lucide="mail" class="h-4 w-4"></i>
-            </a>
-            <a href="#newsletter"
-                class="hidden h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-sm sm:inline-flex">
-                <i data-lucide="mail" class="h-4 w-4"></i>
-                <span class="hidden md:inline">Subscribe</span>
-            </a>
+            {{-- Primary Action CTA --}}
+            @auth
+                <a href="{{ route('dashboard') }}"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                    <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+                    <span>Dashboard</span>
+                </a>
+            @else
+                <a href="{{ route('login') }}"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                    <span>Sign in</span>
+                </a>
+            @endauth
+
+            {{-- Mobile Drawer Trigger --}}
+            <button type="button" x-on:click="mobileOpen = true"
+                class="grid h-8 w-8 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden dark:text-neutral-400 dark:hover:bg-[#1e2028]"
+                aria-label="Open menu">
+                <i data-lucide="menu" class="h-5 w-5"></i>
+            </button>
         </div>
     </div>
 
-    {{-- Category nav (desktop only) --}}
-    @if ($menuCategories->isNotEmpty())
-        <nav class="hidden border-t border-slate-100 dark:border-slate-800/60 lg:block">
-            <div class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 text-sm">
-                <a href="{{ route('frontend.home', ['locale' => $currentLocale?->code]) }}"
-                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 font-semibold transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100 {{ request()->routeIs('frontend.home') ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400' }}">
-                    <i data-lucide="home" class="h-3.5 w-3.5"></i>
-                    Home
-                </a>
-                @foreach ($menuCategories as $cat)
-                    <a href="{{ route('frontend.category', ['locale' => $currentLocale?->code, 'slug' => $cat->translate('slug')]) }}"
-                        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
-                        @if ($cat->icon)
-                            <i data-lucide="{{ $cat->icon }}" class="h-3.5 w-3.5"></i>
-                        @endif
-                        {{ $cat->translate('name') ?? '#' . $cat->id }}
-                    </a>
-                @endforeach
-            </div>
-        </nav>
-    @endif
-
-    {{-- ───── Mobile drawer ─────
-    Rendered with explicit solid bg + min-h-screen so it always
-    covers the underlying page even if `inset-y-0` runs into
-    mobile-viewport quirks. --}}
-    <div x-show="mobileOpen" x-cloak class="fixed inset-0 z-50 lg:hidden"
+    {{-- ───── Mobile Drawer ───── --}}
+    <div x-show="mobileOpen" x-cloak class="fixed inset-0 z-50 md:hidden"
         x-on:keydown.escape.window="mobileOpen = false">
-        <div x-show="mobileOpen" x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" x-on:click="mobileOpen = false"
-            class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div x-show="mobileOpen" x-transition.opacity x-on:click="mobileOpen = false"
+            class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
 
-        <aside x-show="mobileOpen" x-transition:enter="transition ease-out duration-250"
-            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0"
+        <aside x-show="mobileOpen"
+            x-transition:enter="transition ease-out duration-250"
+            x-transition:enter-start="-translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="translate-x-0"
             x-transition:leave-end="-translate-x-full"
-            class="absolute inset-y-0 left-0 flex h-full min-h-screen w-[85%] max-w-sm flex-col bg-white shadow-2xl dark:bg-slate-950">
-
-            {{-- Drawer header --}}
-            <div
-                class="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3.5 dark:border-slate-800">
-                <span class="flex items-center gap-2.5">
-                    <span
-                        class="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
-                        <span class="text-base font-black"
-                            style="font-family: 'Playfair Display', serif;">{{ mb_substr($siteName, 0, 1) }}</span>
-                    </span>
-                    <span class="text-base font-black tracking-tight"
-                        style="font-family: 'Playfair Display', serif;">{{ $siteName }}</span>
+            class="absolute inset-y-0 left-0 flex h-full w-[85%] max-w-sm flex-col bg-white shadow-2xl dark:bg-[#111217]">
+            
+            <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3.5 dark:border-[#1d1f27]">
+                <span class="text-base font-black uppercase tracking-widest text-slate-900 dark:text-white" style="font-family: 'Playfair Display', serif;">
+                    {{ $siteName }}
                 </span>
-                <button type="button" x-on:click="mobileOpen = false"
-                    class="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                    aria-label="Close menu">
-                    <i data-lucide="x" class="h-4 w-4"></i>
-                    <span class="sr-only">Close</span>
+                <button type="button" x-on:click="mobileOpen = false" class="p-1 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white">
+                    <i data-lucide="x" class="h-5 w-5"></i>
                 </button>
             </div>
 
-            {{-- Drawer nav — Home + categories.
-            Icons fall back to plain bullets if Lucide hasn't
-            hydrated yet, so the list is never visually empty. --}}
-            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4 text-sm">
-                <a href="{{ route('frontend.home', ['locale' => $currentLocale?->code]) }}"
-                    class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
-                    <i data-lucide="home" class="h-4 w-4 shrink-0"></i>
+            <nav class="flex-1 space-y-1 overflow-y-auto px-4 py-4 text-sm font-semibold">
+                <a href="{{ route('frontend.home') }}" class="flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-[#181920]">
+                    <i data-lucide="home" class="h-4 w-4"></i>
                     <span>Home</span>
                 </a>
-                @forelse ($menuCategories as $cat)
-                    <a href="{{ route('frontend.category', ['locale' => $currentLocale?->code, 'slug' => $cat->translate('slug')]) }}"
-                        class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
-                        <i data-lucide="{{ $cat->icon ?: 'folder' }}" class="h-4 w-4 shrink-0"></i>
-                        <span>{{ $cat->translate('name') ?? '#' . $cat->id }}</span>
+                
+                <p class="pt-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Categories</p>
+                @foreach ($menuCategories as $cat)
+                    @php($catTitle = html_entity_decode((string) ($cat->translate('name') ?? ('#' . $cat->id)), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                    <a href="{{ route('frontend.category', ['slug' => $cat->translate('slug')]) }}"
+                       class="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-[#181920]">
+                        <span class="flex items-center gap-2">
+                            @if ($cat->icon)
+                                <i data-lucide="{{ $cat->icon }}" class="h-4 w-4"></i>
+                            @endif
+                            <span>{{ $catTitle }}</span>
+                        </span>
+                        <span class="text-xs text-slate-400">{{ $cat->posts_count }}</span>
                     </a>
-                @empty
-                    <p class="px-3 py-2 text-xs text-slate-400 dark:text-slate-500">No categories yet.</p>
-                @endforelse
+                @endforeach
 
-                {{-- Language switcher (mobile) --}}
-                @if (count($activeLanguages) > 1)
-                    <div class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                        <p
-                            class="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                            Language</p>
-                        @foreach ($activeLanguages as $lang)
-                            <a href="{{ route('frontend.home', ['locale' => $lang->code]) }}"
-                                class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-100 dark:hover:bg-slate-800 {{ $currentLocale?->id === $lang->id ? 'bg-slate-100 font-bold text-slate-900 dark:bg-slate-800 dark:text-slate-100' : 'text-slate-700 dark:text-slate-300' }}">
-                                <span class="text-base leading-none">{{ $lang->flag_emoji ?? '🌐' }}</span>
-                                <span class="flex-1">{{ $lang->name }}</span>
-                                <span
-                                    class="rounded bg-slate-200/70 px-1.5 py-0.5 font-mono text-[9px] uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">{{ $lang->code }}</span>
-                            </a>
-                        @endforeach
-                    </div>
-                @endif
-
-                {{-- Theme toggle (mobile) --}}
-                <div class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                    <div class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                        <button type="button"
-                            x-on:click="
-                                const root = document.documentElement;
-                                const isDark = root.classList.toggle('dark');
-                                localStorage.setItem('crm-theme', isDark ? 'dark' : 'light');
-                            "
-                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
-                            <i data-lucide="moon" class="h-4 w-4 dark:hidden"></i>
-                            <i data-lucide="sun" class="hidden h-4 w-4 dark:block"></i>
-                            <span class="dark:hidden">Dark mode</span>
-                            <span class="hidden dark:inline">Light mode</span>
-                        </button>
-                    </div>
+                <p class="pt-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Pages</p>
+                @foreach ($menuPages as $page)
+                    @php($trans = $page->translation($currentLocale?->code) ?? $page->translation())
+                    @if ($trans)
+                        @php($pageTitle = html_entity_decode((string) $trans->title, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                        <a href="{{ route('frontend.page', ['slug' => $trans->slug]) }}"
+                           class="flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-[#181920]">
+                            <i data-lucide="file-text" class="h-4 w-4"></i>
+                            <span>{{ $pageTitle }}</span>
+                        </a>
+                    @endif
+                @endforeach
             </nav>
 
-            {{-- Drawer footer — auth actions --}}
-            <div class="shrink-0 border-t border-slate-200 p-4 dark:border-slate-800">
+            <div class="border-t border-slate-200 p-4 dark:border-[#1d1f27] space-y-2">
+                <button type="button" x-on:click="toggleTheme()"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-700 dark:border-[#262832] dark:text-neutral-300">
+                    <span x-show="!isDark">🌙 Switch to Dark Mode</span>
+                    <span x-show="isDark" x-cloak>☀️ Switch to Light Mode</span>
+                </button>
                 @auth
-                    <a href="{{ route('dashboard') }}"
-                        class="flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white dark:bg-slate-100 dark:text-slate-900">
-                        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+                    <a href="{{ route('dashboard') }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-slate-900">
                         Dashboard
                     </a>
                 @else
-                    <div class="flex gap-2">
-                        <a href="{{ route('login') }}"
-                            class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">
-                            <i data-lucide="log-in" class="h-4 w-4"></i>
-                            Sign in
-                        </a>
-                        <a href="#newsletter" x-on:click="mobileOpen = false"
-                            class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm">
-                            <i data-lucide="mail" class="h-4 w-4"></i>
-                            Subscribe
-                        </a>
-                    </div>
+                    <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-slate-900">
+                        Sign in
+                    </a>
                 @endauth
             </div>
         </aside>
     </div>
 
-    {{-- ───── Mobile search overlay ───── --}}
-    <div x-show="searchOpen" x-cloak class="fixed inset-0 z-50 lg:hidden"
+    {{-- ───── Search Modal ───── --}}
+    <div x-show="searchOpen" x-cloak class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
         x-on:keydown.escape.window="searchOpen = false">
-        <div x-show="searchOpen" x-on:click="searchOpen = false" x-transition.opacity
-            class="absolute inset-0 bg-slate-900/60"></div>
-        <div x-show="searchOpen" x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
-            class="absolute inset-x-4 top-4 rounded-2xl bg-white p-3 shadow-2xl dark:bg-slate-900">
-            <form action="{{ route('frontend.search', ['locale' => $currentLocale?->code]) }}" method="GET">
+        <div x-show="searchOpen" x-transition.opacity x-on:click="searchOpen = false"
+            class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div x-show="searchOpen"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-[#262832] dark:bg-[#181920]">
+            <form action="{{ route('frontend.search') }}" method="GET">
                 <div class="relative">
-                    <i data-lucide="search"
-                        class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" name="q" autofocus placeholder="Search…"
-                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-sm outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-950">
-                    <button type="button" x-on:click="searchOpen = false"
-                        class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" name="q" autofocus placeholder="Type to search articles, topics, authors…"
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-10 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:border-[#262832] dark:bg-[#111217] dark:focus:bg-[#0d0e12] dark:text-white">
+                    <button type="button" x-on:click="searchOpen = false" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600">
                         <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
                 </div>

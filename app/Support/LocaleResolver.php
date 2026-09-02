@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Cache;
  */
 class LocaleResolver
 {
-    private const CACHE_KEY_ACTIVE = 'newspilot.languages.active';
+    private const CACHE_KEY_ACTIVE = 'Rupantrix.languages.active';
 
-    private const CACHE_KEY_DEFAULT = 'newspilot.languages.default';
+    private const CACHE_KEY_DEFAULT = 'Rupantrix.languages.default';
 
     private const CACHE_TTL_SECONDS = 3600;
 

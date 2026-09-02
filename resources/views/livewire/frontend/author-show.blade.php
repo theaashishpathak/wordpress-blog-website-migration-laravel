@@ -1,5 +1,4 @@
 @php
-    $locale = app(\App\Support\LocaleResolver::class)->current();
     $social = is_array($author->social_links) ? $author->social_links : [];
     $socialIcons = [
         'twitter' => 'twitter',
@@ -20,7 +19,7 @@
 
         <div class="relative mx-auto max-w-4xl px-4 py-14 lg:py-20">
             <nav class="mb-6 flex items-center gap-2 text-xs font-semibold text-white/80" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home', ['locale' => $locale?->code]) }}" class="transition hover:text-white">Home</a>
+                <a href="{{ route('frontend.home') }}" class="transition hover:text-white">Home</a>
                 <i data-lucide="chevron-right" class="h-3 w-3 text-white/60"></i>
                 <span class="text-white/60">Author</span>
             </nav>
