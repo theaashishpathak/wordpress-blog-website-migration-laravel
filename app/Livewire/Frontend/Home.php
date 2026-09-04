@@ -8,11 +8,13 @@ use App\Models\Post;
 use App\Models\WpPosts;
 use App\Support\LocaleResolver;
 use Illuminate\Contracts\View\View;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Public homepage — multi-section magazine layout.
@@ -31,6 +33,8 @@ use Livewire\Component;
 #[Title('Home')]
 class Home extends Component
 {
+    use WithPagination;
+
     /**
      * @return Collection<int, Post>
      */
@@ -84,14 +88,13 @@ class Home extends Component
     }
 
     /**
-     * @return Collection<int, Post>
+     * @return LengthAwarePaginator<Post>
      */
     #[Computed]
-    public function latest(): Collection
+    public function latest(): LengthAwarePaginator
     {
         return $this->basePublishedQuery()
-            ->limit(12)
-            ->get();
+            ->paginate(10);
     }
 
     /**

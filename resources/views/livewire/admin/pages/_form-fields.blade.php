@@ -37,7 +37,7 @@
             Content
         </label>
 
-        <x-admin.rich-editor model="content" placeholder="Write the page content…" />
+        <x-admin.rich-editor model="content" :value="$content" placeholder="Write the page content…" />
     </div>
 
     {{-- Per-locale publish toggle --}}

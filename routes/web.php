@@ -191,12 +191,12 @@ require __DIR__.'/settings.php';
 // -------------------------------------------------------------------------
 // Catch-all Post Show Route (Must remain at the very end of web.php)
 // -------------------------------------------------------------------------
-Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9][a-z0-9-]*')->name('frontend.post.show');
+Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9\-]+')->name('frontend.post.show');
 
 Route::group([
     'prefix' => '{locale}',
     'where' => ['locale' => '[a-z]{2}(-[A-Z]{2})?'],
 ], function (): void {
-    Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9][a-z0-9-]*');
+    Route::get('/{slug}', PostShow::class)->where('slug', '[a-z0-9\-]+');
 });
 

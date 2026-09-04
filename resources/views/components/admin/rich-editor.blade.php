@@ -21,7 +21,11 @@
     Livewire's morphing on parent re-renders.
 --}}
 
-<div wire:ignore x-data="tiptapEditor(@js($value), {})" x-init="init()" data-placeholder="{{ $placeholder }}"
+<div wire:ignore
+    x-data="tiptapEditor(@js($value), {})"
+    x-on:page-content-refreshed.window="if (typeof setContent === 'function') { setContent($event.detail?.content ?? (Array.isArray($event.detail) ? $event.detail[0]?.content : null) ?? (typeof $event.detail === 'string' ? $event.detail : '')); }"
+    x-on:editor:set-content.window="if (typeof setContent === 'function') { setContent($event.detail?.content ?? (Array.isArray($event.detail) ? $event.detail[0]?.content : null) ?? (typeof $event.detail === 'string' ? $event.detail : '')); }"
+    data-placeholder="{{ $placeholder }}"
     class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:ring-indigo-500/20">
     {{-- Toolbar — grouped buttons separated by thin dividers. --}}
     <div

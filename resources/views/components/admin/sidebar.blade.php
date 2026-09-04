@@ -383,6 +383,38 @@
                 </div>
             @endcanany
 
+            {{-- Website & Appearance (Header & Footer, Homepage Customizer & Navigation) --}}
+            @canany(['settings.view', 'settings.update'])
+                @php($appearanceActive = request()->routeIs('admin.header-footer.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.navigation.*'))
+                <div>
+                    <button type="button"
+                        class="{{ $dropdownParentClass }} {{ $appearanceActive ? $menuActiveClass : $menuInactiveClass }}"
+                        data-sidebar-menu-toggle="appearance-sidebar-menu" aria-controls="appearance-sidebar-menu">
+                        <span class="{{ $menuContentClass }}">
+                            <i data-lucide="palette" class="h-4 w-4 shrink-0"></i>
+                            <span data-sidebar-label class="truncate">Appearance</span>
+                        </span>
+                        <i data-lucide="chevron-down" class="{{ $menuChevronClass }}" data-sidebar-label></i>
+                    </button>
+
+                    <div data-sidebar-submenu="appearance-sidebar-menu"
+                        class="{{ $subMenuWrapper }} {{ $appearanceActive ? '' : 'hidden' }}">
+                        <a href="{{ route('admin.header-footer.index') }}" wire:navigate
+                            class="{{ $childMenuBaseClass }} {{ request()->routeIs('admin.header-footer.*') ? $childMenuActiveClass : $childMenuInactiveClass }}">
+                            <span data-sidebar-label>Header & Footer</span>
+                        </a>
+                        <a href="{{ route('admin.homepage.index') }}" wire:navigate
+                            class="{{ $childMenuBaseClass }} {{ request()->routeIs('admin.homepage.*') ? $childMenuActiveClass : $childMenuInactiveClass }}">
+                            <span data-sidebar-label>Homepage Customizer</span>
+                        </a>
+                        <a href="{{ route('admin.navigation.index') }}" wire:navigate
+                            class="{{ $childMenuBaseClass }} {{ request()->routeIs('admin.navigation.*') ? $childMenuActiveClass : $childMenuInactiveClass }}">
+                            <span data-sidebar-label>Navigation Menu</span>
+                        </a>
+                    </div>
+                </div>
+            @endcanany
+
             {{-- Settings --}}
             @canany(['settings.view', 'settings.update', 'settings.roles', 'settings.permissions', 'logs.login.view',
                 'logs.activity.view'])

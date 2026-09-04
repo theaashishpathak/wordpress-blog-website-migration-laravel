@@ -166,6 +166,7 @@ class Create extends Component
     private function broadcastContentRefresh(): void
     {
         $this->dispatch('page-content-refreshed', content: $this->content);
+        $this->dispatch('editor:set-content', content: $this->content);
     }
 
     // -- Save ------------------------------------------------------------------

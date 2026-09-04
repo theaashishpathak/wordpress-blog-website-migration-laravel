@@ -2,10 +2,10 @@
     {{-- Hero with search input --}}
     <header class="relative overflow-hidden border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
         <div class="relative mx-auto max-w-4xl px-4 py-12 lg:py-16">
-            <nav class="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700">Home</a>
-                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300"></i>
-                <span class="text-slate-400">Search</span>
+            <nav class="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-neutral-400" aria-label="Breadcrumb">
+                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700 dark:hover:text-emerald-400">Home</a>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300 dark:text-neutral-600"></i>
+                <span class="text-slate-400 dark:text-neutral-500">Search</span>
             </nav>
 
             <h1 class="text-4xl font-black tracking-tight text-slate-900 md:text-5xl dark:text-slate-100"
@@ -59,7 +59,7 @@
                 @endforeach
             </div>
 
-            <div class="mt-10">{{ $this->results->onEachSide(1)->links() }}</div>
+            <div class="mt-10">{{ $this->results->onEachSide(1)->links('livewire.frontend.pagination', ['scrollTo' => 'header']) }}</div>
         @endif
     </section>
 </div>

@@ -261,4 +261,27 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): voi
             ->middleware('permission:pages.edit')
             ->name('edit');
     });
+
+    // -------------------------------------------------------------------------
+    // Rupantrix — Website & Appearance (Homepage & Navigation)
+    // -------------------------------------------------------------------------
+
+    Route::prefix('homepage')->name('admin.homepage.')->group(function (): void {
+        Route::get('/', \App\Livewire\Admin\Homepage\Index::class)
+            ->middleware('permission:settings.view')
+            ->name('index');
+    });
+
+    Route::prefix('header-footer')->name('admin.header-footer.')->group(function (): void {
+        Route::get('/', \App\Livewire\Admin\HeaderFooter\Index::class)
+            ->middleware('permission:settings.view')
+            ->name('index');
+    });
+
+    Route::prefix('navigation')->name('admin.navigation.')->group(function (): void {
+        Route::get('/', \App\Livewire\Admin\Navigation\Index::class)
+            ->middleware('permission:settings.view')
+            ->name('index');
+    });
 });
+

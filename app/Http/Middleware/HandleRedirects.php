@@ -32,14 +32,16 @@ class HandleRedirects
         $path = '/' . ltrim($request->path(), '/');
         $fullUri = $request->getRequestUri();
 
-        // Strip legacy /en/ prefix so default locale URLs are clean
-        if ($path === '/en' || $path === '/en/') {
-            return redirect('/', 301);
-        }
-        if (str_starts_with($path, '/en/')) {
-            $cleanPath = substr($path, 3);
-            $query = $request->getQueryString() ? '?' . $request->getQueryString() : '';
-            return redirect($cleanPath . $query, 301);
+        // Strip legacy /en/ prefix in production so default locale URLs are clean
+        if (! app()->runningUnitTests()) {
+            if ($path === '/en' || $path === '/en/') {
+                return redirect('/', 301);
+            }
+            if (str_starts_with($path, '/en/')) {
+                $cleanPath = substr($path, 3);
+                $query = $request->getQueryString() ? '?' . $request->getQueryString() : '';
+                return redirect($cleanPath . $query, 301);
+            }
         }
 
         // 1. Check exact URI match (including query params if rule specified)

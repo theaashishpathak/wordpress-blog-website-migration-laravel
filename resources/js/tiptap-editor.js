@@ -52,7 +52,10 @@ window.tiptapEditor = function tiptapEditor(initial = '', opts = {}) {
         sourceView: false,
 
         init() {
+            if (this.editor) return;
+
             const placeholder = this.$el.dataset.placeholder || 'Start writing your article…';
+            const startContent = initial || (this.$refs.textarea ? this.$refs.textarea.value : '') || '';
 
             this.editor = new Editor({
                 element: this.$refs.mount,
@@ -85,7 +88,7 @@ window.tiptapEditor = function tiptapEditor(initial = '', opts = {}) {
                     TableRow, TableHeader, TableCell,
                     Youtube.configure({ width: 640, height: 360, controls: true }),
                 ],
-                content: initial || '',
+                content: startContent,
                 editorProps: {
                     attributes: {
                         // Tailwind prose for nice in-editor preview.
@@ -108,22 +111,33 @@ window.tiptapEditor = function tiptapEditor(initial = '', opts = {}) {
                 onTransaction: () => this.refreshStates(),
             });
 
-            // If Livewire pushes a new value into the textarea (e.g. AI
-            // assistant writes a draft) reflect it back into the editor.
-            this.$watch('$refs.textarea.value', (value) => {
+            // Handle custom events dispatched by Livewire when tabs switch or content refreshes
+            const handleContentUpdate = (event) => {
                 if (! this.editor) return;
-                if (value === this.editor.getHTML()) return;
-                this.editor.commands.setContent(value || '', false);
-            });
+                const next = event?.detail?.content ?? (Array.isArray(event?.detail) ? event.detail[0]?.content : null) ?? (typeof event?.detail === 'string' ? event.detail : '');
+                this.setContent(next);
+            };
 
-            // Same idea but for a custom event the Livewire AI drawer
-            // dispatches — `editor:set-content`.
-            window.addEventListener('editor:set-content', (event) => {
-                if (! this.editor) return;
-                const next = event?.detail?.content ?? '';
-                this.editor.commands.setContent(next, true);
-                this.syncToTextarea(next);
-            });
+            window.addEventListener('editor:set-content', handleContentUpdate);
+            window.addEventListener('page-content-refreshed', handleContentUpdate);
+
+            if (this.$cleanup) {
+                this.$cleanup(() => {
+                    window.removeEventListener('editor:set-content', handleContentUpdate);
+                    window.removeEventListener('page-content-refreshed', handleContentUpdate);
+                    if (this.editor) {
+                        this.editor.destroy();
+                        this.editor = null;
+                    }
+                });
+            }
+        },
+
+        setContent(next = '') {
+            if (! this.editor) return;
+            if (next === this.editor.getHTML()) return;
+            this.editor.commands.setContent(next || '', false);
+            this.syncToTextarea(next || '');
         },
 
         // Push the latest HTML into the hidden textarea AND dispatch a

@@ -10,10 +10,12 @@
         <div class="pointer-events-none absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 80% 20%, {{ $color }}33 0%, transparent 50%);"></div>
         <div class="relative mx-auto max-w-7xl px-4 py-12 lg:py-16">
             {{-- Breadcrumb --}}
-            <nav class="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500" aria-label="Breadcrumb">
-                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700">Home</a>
-                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300"></i>
-                <span class="text-slate-400">Categories</span>
+            <nav class="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-neutral-400" aria-label="Breadcrumb">
+                <a href="{{ route('frontend.home') }}" class="transition hover:text-emerald-700 dark:hover:text-emerald-400">Home</a>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300 dark:text-neutral-600"></i>
+                <span class="text-slate-400 dark:text-neutral-500">Categories</span>
+                <i data-lucide="chevron-right" class="h-3 w-3 text-slate-300 dark:text-neutral-600"></i>
+                <span class="text-slate-600 dark:text-neutral-300 font-medium truncate">{{ $name }}</span>
             </nav>
 
             <div class="flex flex-wrap items-center gap-4">
@@ -23,7 +25,6 @@
                     </span>
                 @endif
                 <div class="min-w-0">
-                    <p class="mb-1 text-[10px] font-black uppercase tracking-[0.2em]" style="color: {{ $color }};">Category</p>
                     <h1 class="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl dark:text-slate-100"
                         style="font-family: 'Playfair Display', serif;">
                         {{ $name }}
@@ -32,8 +33,8 @@
                         <p class="mt-3 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">{{ $description }}</p>
                     @endif
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                        <span class="inline-flex items-center gap-1.5 font-bold text-slate-500">
-                            <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+                        <span class="inline-flex items-center gap-1.5 font-bold text-slate-600 dark:text-neutral-300">
+                            <i data-lucide="file-text" class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"></i>
                             {{ $this->posts->total() }} {{ \Illuminate\Support\Str::plural('article', $this->posts->total()) }}
                         </span>
                         <livewire:frontend.follow-button targetType="category" :targetId="$category->id" :wire:key="'follow-cat-'.$category->id" />
@@ -61,7 +62,7 @@
                 @endforeach
             </div>
 
-            <div class="mt-10">{{ $this->posts->onEachSide(1)->links() }}</div>
+            <div class="mt-10">{{ $this->posts->onEachSide(1)->links('livewire.frontend.pagination', ['scrollTo' => 'header']) }}</div>
         @endif
     </section>
 </div>

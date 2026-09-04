@@ -52,11 +52,22 @@ class PostShow extends Component
         $request = $request ?? request();
         $languageId = app(\App\Support\LocaleResolver::class)->current()?->id;
 
+        $cleanSlug = ltrim($slug, '-');
+        $slugVariants = array_unique(array_filter([$slug, $cleanSlug, '-' . $cleanSlug]));
+
         $translation = PostTranslation::query()
             ->with('post.translations', 'post.author', 'post.featuredImage', 'post.category', 'language')
             ->when($languageId !== null, fn ($q) => $q->where('language_id', $languageId))
-            ->where('slug', $slug)
+            ->whereIn('slug', $slugVariants)
             ->first();
+
+        // Fallback across any language translation if not in current locale
+        if ($translation === null) {
+            $translation = PostTranslation::query()
+                ->with('post.translations', 'post.author', 'post.featuredImage', 'post.category', 'language')
+                ->whereIn('slug', $slugVariants)
+                ->first();
+        }
 
         if ($translation === null
             || $translation->post === null
@@ -93,13 +104,205 @@ class PostShow extends Component
         $categoryId = $this->post->category_id;
 
         return Post::query()
-            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'author:id,name'])
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'author:id,name,avatar', 'category.translations'])
             ->where('status', \App\Enums\PostStatus::Published->value)
             ->whereKeyNot($this->post->id)
             ->when($categoryId !== null, fn ($q) => $q->where('category_id', $categoryId))
             ->orderByDesc('published_at')
-            ->limit(4)
+            ->limit(3)
             ->get();
+    }
+
+    #[Computed]
+    public function previousPost(): ?Post
+    {
+        return Post::query()
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations'])
+            ->where('status', \App\Enums\PostStatus::Published->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<', $this->post->published_at ?? now())
+            ->orderByDesc('published_at')
+            ->first();
+    }
+
+    #[Computed]
+    public function nextPost(): ?Post
+    {
+        return Post::query()
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations'])
+            ->where('status', \App\Enums\PostStatus::Published->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '>', $this->post->published_at ?? now())
+            ->orderBy('published_at')
+            ->first();
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    #[Computed]
+    public function inlineRelatedPosts(): Collection
+    {
+        $categoryId = $this->post->category_id;
+
+        return Post::query()
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations'])
+            ->where('status', \App\Enums\PostStatus::Published->value)
+            ->whereKeyNot($this->post->id)
+            ->when($categoryId !== null, fn ($q) => $q->where('category_id', $categoryId))
+            ->orderByDesc('view_count')
+            ->limit(2)
+            ->get();
+    }
+
+    #[Computed]
+    public function featuredSidebarPost(): ?Post
+    {
+        return Post::query()
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations', 'author:id,name,avatar'])
+            ->where('status', \App\Enums\PostStatus::Published->value)
+            ->whereKeyNot($this->post->id)
+            ->where('is_featured', true)
+            ->latest('published_at')
+            ->first()
+            ?? Post::query()
+                ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations', 'author:id,name,avatar'])
+                ->where('status', \App\Enums\PostStatus::Published->value)
+                ->whereKeyNot($this->post->id)
+                ->latest('published_at')
+                ->first();
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    #[Computed]
+    public function authorPosts(): Collection
+    {
+        if (! $this->post->author_id) {
+            return collect();
+        }
+
+        return Post::query()
+            ->with(['translations', 'featuredImage:id,disk,path,mime_type,alt_text', 'category.translations'])
+            ->where('status', \App\Enums\PostStatus::Published->value)
+            ->where('author_id', $this->post->author_id)
+            ->whereKeyNot($this->post->id)
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, \App\Models\Category>
+     */
+    #[Computed]
+    public function popularCategories(): Collection
+    {
+        return \App\Models\Category::query()
+            ->with('translations')
+            ->withCount(['posts' => fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value)])
+            ->whereHas('posts', fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value))
+            ->orderByDesc('posts_count')
+            ->limit(8)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, \App\Models\Tag>
+     */
+    #[Computed]
+    public function popularTags(): Collection
+    {
+        return \App\Models\Tag::query()
+            ->with('translations')
+            ->withCount(['posts' => fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value)])
+            ->whereHas('posts', fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value))
+            ->orderByDesc('posts_count')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
+     * @return array<int, array{title: string, text: string}>
+     */
+    #[Computed]
+    public function storyHighlights(): array
+    {
+        $highlights = [];
+
+        if (! empty($this->translation->excerpt)) {
+            $raw = trim(html_entity_decode(strip_tags(str_replace(["\xc2\xa0", '&nbsp;'], ' ', (string) $this->translation->excerpt)), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            $sentences = preg_split('/(?<=[.?!])\s+(?=[A-Z0-9])/', $raw);
+            if (! empty($sentences)) {
+                foreach (array_slice($sentences, 0, 4) as $idx => $s) {
+                    $s = trim($s);
+                    if (strlen($s) > 15) {
+                        $highlights[] = [
+                            'title' => 'Key Insight ' . ($idx + 1),
+                            'text' => $s,
+                        ];
+                    }
+                }
+            }
+        }
+
+        if (count($highlights) < 3) {
+            $html = (string) $this->translation->content;
+            if (preg_match_all('/<h[23][^>]*>(.*?)<\/h[23]>/i', $html, $matches) && ! empty($matches[1])) {
+                foreach (array_slice($matches[1], 0, 4) as $heading) {
+                    $cleanHeading = trim(html_entity_decode(strip_tags(str_replace(["\xc2\xa0", '&nbsp;'], ' ', $heading)), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                    if (strlen($cleanHeading) > 5 && count($highlights) < 4) {
+                        $highlights[] = [
+                            'title' => $cleanHeading,
+                            'text' => 'Critical analysis, strategic context, and implications explored within this report.',
+                        ];
+                    }
+                }
+            }
+        }
+
+        if (empty($highlights)) {
+            $highlights = [
+                [
+                    'title' => 'Strategic Overview',
+                    'text' => 'Essential background context and structural changes driving this story forward.',
+                ],
+                [
+                    'title' => 'Audience & Industry Impact',
+                    'text' => 'Actionable observations and takeaways for readers evaluating these developments.',
+                ],
+                [
+                    'title' => 'Looking Forward',
+                    'text' => 'Forward-looking perspective and emerging dynamics shaping the future trajectory.',
+                ],
+            ];
+        }
+
+        return $highlights;
+    }
+
+    /**
+     * Normalized post content with breakable spaces (eliminates non-breaking spaces
+     * that cause browsers to prevent line wrapping and trigger horizontal overflow).
+     */
+    #[Computed]
+    public function renderedContent(): string
+    {
+        $content = (string) ($this->translation->content ?? '');
+
+        return str_replace(["\xc2\xa0", '&nbsp;'], ' ', $content);
+    }
+
+    /**
+     * Normalized post excerpt with breakable spaces and decoded entities.
+     */
+    #[Computed]
+    public function renderedExcerpt(): string
+    {
+        $excerpt = (string) ($this->translation->excerpt ?? '');
+
+        return trim(html_entity_decode(str_replace(["\xc2\xa0", '&nbsp;'], ' ', $excerpt), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
     /**

@@ -137,7 +137,7 @@
         the homepage). The anchor flex-grows + image switches to h-full so
         there's no empty space below the aspect-ratio frame.
     --}}
-    <article class="group relative flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-900/5 hover:ring-slate-300 dark:bg-slate-900 dark:ring-slate-800 dark:hover:ring-slate-700 {{ in_array($size, ['lg', 'xl']) ? 'h-full min-h-[420px] md:min-h-[480px]' : '' }}">
+    <article class="group relative flex flex-col overflow-hidden rounded-2xl bg-white/85 backdrop-blur-md border border-slate-300/80 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-xl dark:bg-[#15161e]/80 dark:border-white/10 dark:hover:border-emerald-500/40 {{ in_array($size, ['lg', 'xl']) ? 'h-full min-h-[420px] md:min-h-[480px]' : '' }}">
         {{-- Image with overlay badges --}}
         <a href="{{ $url }}" class="relative overflow-hidden {{ in_array($size, ['lg', 'xl']) ? 'flex flex-1' : 'block' }}">
             <div class="{{ in_array($size, ['lg', 'xl']) ? 'h-full w-full' : $sizeMap['aspect'].' w-full' }} overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -160,17 +160,17 @@
             @endif
 
             {{-- Top-left badges --}}
-            <div class="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+            <div class="absolute left-3 top-3 flex flex-wrap items-center gap-1.5 z-10">
                 @if ($isBreaking)
-                    <span class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-rose-600/30">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-lg backdrop-blur-md">
                         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></span>
                         Breaking
                     </span>
                 @endif
                 @if ($isFeatured && ! $isBreaking)
-                    <span class="inline-flex items-center gap-1 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-amber-500/30">
-                        <i data-lucide="star" class="h-2.5 w-2.5"></i>
-                        Featured
+                    <span class="featured-glass-pill">
+                        <i data-lucide="sparkles" class="h-3 w-3"></i>
+                        <span>Featured</span>
                     </span>
                 @endif
             </div>
@@ -179,8 +179,9 @@
             @if (in_array($size, ['lg', 'xl']))
                 <div class="absolute inset-x-0 bottom-0 p-5 md:p-6">
                     @if ($showCategory && $post->category)
-                        <span class="mb-2 inline-block rounded bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-800">
-                            {{ $post->category->translate('name') ?? '#'.$post->category_id }}
+                        <span class="mb-2 category-glass-pill">
+                            <span class="pill-dot"></span>
+                            <span>{{ $post->category->translate('name') ?? '#'.$post->category_id }}</span>
                         </span>
                     @endif
                     <h3 class="{{ $sizeMap['title'] }} leading-tight text-white drop-shadow-lg" style="font-family: 'Playfair Display', serif;">

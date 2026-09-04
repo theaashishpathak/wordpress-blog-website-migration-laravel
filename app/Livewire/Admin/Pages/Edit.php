@@ -152,6 +152,7 @@ class Edit extends Component
     private function broadcastContentRefresh(): void
     {
         $this->dispatch('page-content-refreshed', content: $this->content);
+        $this->dispatch('editor:set-content', content: $this->content);
     }
 
     // -- Translation tabs ------------------------------------------------------
@@ -223,6 +224,7 @@ class Edit extends Component
             $this->page = $this->page->fresh(['translations']);
             $this->loadTranslationsFromModel();
             $this->loadActiveIntoScalars();
+            $this->broadcastContentRefresh();
 
             $this->dispatchSuccessToast('Page updated.');
         } catch (Throwable $exception) {

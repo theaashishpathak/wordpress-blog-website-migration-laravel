@@ -117,3 +117,41 @@ test('page-show renders the page content + title', function (): void {
         ->assertSee('About Us')
         ->assertSee('Our story begins here', escape: false);
 });
+
+test('page-show applies full-width template layout when template is full-width', function (): void {
+    $page = Page::factory()->withoutTranslations()->create([
+        'status' => \App\Enums\PageStatus::Published->value,
+        'template' => Page::TEMPLATE_FULL_WIDTH,
+    ]);
+    $tr = $page->translations()->create([
+        'language_id' => $this->english->id,
+        'title' => 'Full Width Page',
+        'slug' => 'full-width-page',
+        'content' => '<p>Full width content.</p>',
+        'is_published' => true,
+    ]);
+
+    Livewire::test(PageShow::class, ['page' => $page->fresh(), 'translation' => $tr->fresh()])
+        ->assertOk()
+        ->assertSee('max-w-[1360px]', escape: false)
+        ->assertSee('Full width content.', escape: false);
+});
+
+test('page-show applies landing template layout when template is landing', function (): void {
+    $page = Page::factory()->withoutTranslations()->create([
+        'status' => \App\Enums\PageStatus::Published->value,
+        'template' => Page::TEMPLATE_LANDING,
+    ]);
+    $tr = $page->translations()->create([
+        'language_id' => $this->english->id,
+        'title' => 'Landing Page',
+        'slug' => 'landing-page',
+        'content' => '<p>Landing page content.</p>',
+        'is_published' => true,
+    ]);
+
+    Livewire::test(PageShow::class, ['page' => $page->fresh(), 'translation' => $tr->fresh()])
+        ->assertOk()
+        ->assertSee('Featured Page')
+        ->assertSee('Landing page content.', escape: false);
+});

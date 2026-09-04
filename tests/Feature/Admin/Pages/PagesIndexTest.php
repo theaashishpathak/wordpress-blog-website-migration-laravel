@@ -204,3 +204,42 @@ test('Edit removeTranslation marks for deletion and Save drops the row', functio
 
     expect($page->fresh()->translations()->where('language_id', $bangla->id)->exists())->toBeFalse();
 });
+
+test('Edit component loads existing content and dispatches content refresh events', function (): void {
+    $admin = pagesUser();
+    $page = Page::factory()->withoutTranslations()->create();
+    $page->translations()->create([
+        'language_id' => $this->english->id,
+        'title' => 'About Us',
+        'slug' => 'about-us',
+        'content' => '<p>Existing about us text.</p>',
+        'is_published' => true,
+    ]);
+
+    $test = Livewire::actingAs($admin)
+        ->test(PagesEdit::class, ['page' => $page->fresh()]);
+
+    expect($test->get('content'))->toBe('<p>Existing about us text.</p>');
+    $test->assertSeeHtml('tiptapEditor(');
+    $test->assertSeeHtml('Existing about us text.');
+});
+
+test('Edit component saves updated template selection', function (): void {
+    $admin = pagesUser();
+    $page = Page::factory()->withoutTranslations()->create([
+        'template' => Page::TEMPLATE_DEFAULT,
+    ]);
+    $page->translations()->create([
+        'language_id' => $this->english->id,
+        'title' => 'About Us',
+        'slug' => 'about-us',
+        'content' => '<p>Existing text</p>',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(PagesEdit::class, ['page' => $page->fresh()])
+        ->set('template', Page::TEMPLATE_FULL_WIDTH)
+        ->call('save');
+
+    expect($page->fresh()->template)->toBe(Page::TEMPLATE_FULL_WIDTH);
+});
