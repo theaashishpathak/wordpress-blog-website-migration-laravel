@@ -1,16 +1,29 @@
 @php
+    $settings = app(\App\Services\SettingService::class);
+    $siteName = (string) ($settings->get('site.name') ?? 'Revision');
+    $siteDescription = (string) ($settings->get('site.description') ?? 'Welcome to ultimate source for fresh perspectives! Explore curated content to enlighten, entertain and engage global readers.');
+
     // Fetch real top categories with post counts
     $popularCategory = \App\Models\Category::query()
         ->withCount(['posts' => fn($q) => $q->where('status', \App\Enums\PostStatus::Published->value)])
+        ->having('posts_count', '>', 0)
         ->orderByDesc('posts_count')
         ->take(12)
-        ->get()
-        ->filter(fn($c) => $c->posts_count > 0);
+        ->get();
 
-    // Use computed trending or fallback to latest
-    $trendingStories = $this->trending->isNotEmpty() ? $this->trending->take(4) : $this->latest->take(4);
+    // Fetch popular tags
+    $popularTags = \App\Models\Tag::query()
+        ->withCount('posts')
+        ->having('posts_count', '>', 0)
+        ->orderByDesc('posts_count')
+        ->take(10)
+        ->get();
 
+    // Lead author or fallback
     $leadAuthor = \App\Models\User::whereHas('posts')->first() ?? auth()->user();
+
+    // Curated / trending posts for editorial widget
+    $curatedStories = $this->trending->isNotEmpty() ? $this->trending->take(3) : $this->latest->take(3);
 @endphp
 
 <div class="min-h-screen bg-[#f8f9fa] text-slate-900 transition-colors duration-200 dark:bg-[#0d0e12] dark:text-neutral-100">
@@ -18,18 +31,14 @@
     @if ($this->breaking->isNotEmpty())
         <div class="border-b border-rose-200/80 bg-rose-50/60 dark:border-rose-500/20 dark:bg-rose-500/10">
             <div class="mx-auto flex max-w-[1360px] items-center gap-3 px-4 py-2 text-sm sm:px-6 lg:px-8">
-                <span
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-xs">
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-xs">
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></span>
                     Breaking
                 </span>
                 <div class="flex flex-1 items-center gap-6 overflow-x-auto scrollbar-hide">
                     @foreach ($this->breaking as $bp)
                         @php
-                            $t =
-                                $bp->translation() ??
-                                ($bp->translations->firstWhere('language_id', $bp->default_language_id) ??
-                                    $bp->translations->first());
+                            $t = $bp->translation() ?? ($bp->translations->firstWhere('language_id', $bp->default_language_id) ?? $bp->translations->first());
                         @endphp
                         @if ($t && !empty($t->slug))
                             <a href="{{ route('frontend.post.show', ['slug' => $t->slug]) }}"
@@ -46,20 +55,19 @@
         </div>
     @endif
 
-    {{-- ───── Header Hero Statement & Topic Pills (Matching Reference) ───── --}}
-    <header class="relative mx-auto max-w-4xl px-4 pt-14 pb-10 text-center">
-        <h1 class="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-[44px] leading-[1.18] dark:text-white"
-            style="font-family: 'Playfair Display', serif;">
+    {{-- ───── Header Hero Statement & Topic Pills (Revision Design Reference) ───── --}}
+    <header class="relative mx-auto max-w-4xl px-4 pt-14 pb-12 text-center">
+        <h1 class="hero-display-title">
             Heartfelt Reflections: Stories of Love, Loss, and Growth
         </h1>
         <p class="mx-auto mt-4 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-400">
-            Revision Welcomes to ultimate source for fresh perspectives! Explore curated content to enlighten, entertain and engage global readers.
+            {{ $siteDescription }}
         </p>
 
         {{-- Explore trending topics --}}
         <div class="mt-8">
-            <p class="mb-3.5 text-[10px] font-black uppercase tracking-[0.24em] text-slate-400 dark:text-neutral-500">
-                Explore Trending Topics
+            <p class="mb-3.5 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400 dark:text-neutral-500">
+                EXPLORE TRENDING TOPICS
             </p>
             <div class="flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto">
                 @if ($popularCategory->isNotEmpty())
@@ -67,8 +75,7 @@
                         @php
                             $catName = html_entity_decode((string) ($cat->translate('name') ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         @endphp
-                        <a href="{{ route('frontend.category', ['slug' => $cat->translate('slug')]) }}"
-                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200 dark:hover:bg-[#22242e]">
+                        <a href="{{ route('frontend.category', ['slug' => $cat->translate('slug')]) }}" class="topic-pill">
                             @if ($cat->icon)
                                 <i data-lucide="{{ $cat->icon }}" class="h-3.5 w-3.5 text-slate-500 dark:text-neutral-400"></i>
                             @else
@@ -78,32 +85,22 @@
                         </a>
                     @endforeach
                 @else
-                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200">
-                        <i data-lucide="laptop" class="h-3.5 w-3.5"></i> Technology
-                    </span>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200">
-                        <i data-lucide="plane" class="h-3.5 w-3.5"></i> Travel
-                    </span>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200">
-                        <i data-lucide="trophy" class="h-3.5 w-3.5"></i> Sport
-                    </span>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200">
-                        <i data-lucide="briefcase" class="h-3.5 w-3.5"></i> Business
-                    </span>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-200">
-                        <i data-lucide="trending-up" class="h-3.5 w-3.5"></i> Trends
-                    </span>
+                    <span class="topic-pill"><i data-lucide="laptop" class="h-3.5 w-3.5"></i> Technology</span>
+                    <span class="topic-pill"><i data-lucide="plane" class="h-3.5 w-3.5"></i> Travel</span>
+                    <span class="topic-pill"><i data-lucide="trophy" class="h-3.5 w-3.5"></i> Sport</span>
+                    <span class="topic-pill"><i data-lucide="briefcase" class="h-3.5 w-3.5"></i> Business</span>
+                    <span class="topic-pill"><i data-lucide="trending-up" class="h-3.5 w-3.5"></i> Trends</span>
                 @endif
             </div>
         </div>
     </header>
 
     {{-- ───── Main Magazine Stream + Multi-Widget Sidebar ───── --}}
-    <section class="mx-auto max-w-[1360px] px-4 py-8 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+    <section class="mx-auto max-w-[1360px] px-4 py-6 sm:px-6 lg:px-8">
+        <div class="magazine-grid">
             
-            {{-- Left Column: Clean Story Rows (8 cols on lg) --}}
-            <div class="lg:col-span-8 space-y-10 min-w-0">
+            {{-- Left Column: Main Story Rows --}}
+            <div class="min-w-0">
                 @if ($this->latest->isEmpty())
                     <div class="rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center dark:border-[#22242c]">
                         <i data-lucide="newspaper" class="mx-auto h-12 w-12 text-slate-300 dark:text-neutral-600"></i>
@@ -111,75 +108,77 @@
                         <p class="mt-1 text-sm text-slate-500">Check back soon for fresh stories.</p>
                     </div>
                 @else
-                    @foreach ($this->latest as $post)
-                        @php
-                            $postT = $post->translation() ?? ($post->translations->firstWhere('language_id', $post->default_language_id) ?? $post->translations->first());
-                            $slug = $postT?->slug;
-                            $url = $slug ? route('frontend.post.show', ['slug' => $slug]) : null;
-                            $feat = $post->featuredImage;
-                            $hasImg = $feat && ($feat->isImage() || ($feat->path !== null && $feat->path !== ''));
-                            $imgUrl = $hasImg ? $feat->url() : "https://picsum.photos/seed/np{$post->id}/800/500";
-                            $postCatName = html_entity_decode((string) ($post->category?->translate('name') ?? 'BUSINESS'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            $authorName = $post->author?->name ?? 'Ethan Caldwell';
-                            $postDate = $post->published_at?->format('F d, Y') ?? 'October 16, 2024';
-                        @endphp
+                    <div class="space-y-10">
+                        @foreach ($this->latest as $post)
+                            @php
+                                $postT = $post->translation() ?? ($post->translations->firstWhere('language_id', $post->default_language_id) ?? $post->translations->first());
+                                $slug = $postT?->slug;
+                                $url = $slug ? route('frontend.post.show', ['slug' => $slug]) : null;
+                                $feat = $post->featuredImage;
+                                $hasImg = $feat && ($feat->isImage() || ($feat->path !== null && $feat->path !== ''));
+                                $imgUrl = $hasImg ? $feat->url() : "https://picsum.photos/seed/np{$post->id}/800/500";
+                                $postCatName = html_entity_decode((string) ($post->category?->translate('name') ?? 'GENERAL'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $authorName = $post->author?->name ?? ($leadAuthor?->name ?? 'Author');
+                                $postDate = $post->published_at?->format('F d, Y') ?? 'Recent';
+                            @endphp
 
-                        @if ($postT && $slug)
-                            <article class="group grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-7 items-center">
-                                {{-- Thumbnail Column (5 cols on sm+) --}}
-                                <div class="sm:col-span-5 relative overflow-hidden rounded-3xl aspect-[16/11] bg-slate-100 dark:bg-[#181920] shadow-sm">
-                                    <a href="{{ $url }}" class="block h-full w-full">
-                                        <img src="{{ $imgUrl }}" alt="{{ $postT->title }}" loading="lazy"
-                                            class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
-                                    </a>
-                                    <div class="absolute left-3.5 top-3.5 flex items-center gap-1.5">
-                                        <span class="rounded-md bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm">
-                                            {{ $postCatName }}
-                                        </span>
-                                        @if ($post->is_featured)
-                                            <span class="rounded-md bg-amber-500 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
-                                                Featured
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                {{-- Text Column (7 cols on sm+) --}}
-                                <div class="sm:col-span-7 flex flex-col justify-center py-1">
-                                    {{-- Author on Date --}}
-                                    <p class="text-xs font-medium text-slate-500 dark:text-neutral-400">
-                                        {{ $authorName }} on {{ $postDate }}
-                                    </p>
-
-                                    {{-- Headline --}}
-                                    <a href="{{ $url }}" class="mt-2 block">
-                                        <h2 class="text-xl sm:text-2xl font-bold leading-snug text-slate-900 transition group-hover:text-emerald-500 dark:text-white dark:group-hover:text-emerald-400 line-clamp-2"
-                                            style="font-family: 'Playfair Display', serif;">
-                                            {{ $postT->title }}
-                                        </h2>
-                                    </a>
-
-                                    {{-- Excerpt with bullet --}}
-                                    <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-neutral-400 leading-relaxed line-clamp-2">
-                                        <span class="text-neutral-400 mr-1">✣</span>
-                                        {{ $postT->excerpt ?: 'Revision offers a unique space blending personal narratives and professional insights to foster real connections.' }}
-                                    </p>
-
-                                    {{-- Discover More Button --}}
-                                    <div class="mt-4 pt-0.5">
-                                        <a href="{{ $url }}"
-                                            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-100 dark:border-[#2e313d] dark:bg-[#1a1b22] dark:text-neutral-200 dark:hover:bg-[#252732] dark:hover:text-white">
-                                            Discover More
+                            @if ($postT && $slug)
+                                <article class="story-card group">
+                                    {{-- Thumbnail Media Card --}}
+                                    <div class="story-card-media">
+                                        <a href="{{ $url }}" class="block h-full w-full">
+                                            <img src="{{ $imgUrl }}" alt="{{ $postT->title }}" loading="lazy">
                                         </a>
+                                        <div class="absolute left-3.5 top-3.5 flex items-center gap-1.5 z-10">
+                                            <span class="rounded-md bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm">
+                                                {{ $postCatName }}
+                                            </span>
+                                            @if ($post->is_featured)
+                                                <span class="rounded-md bg-amber-500 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
+                                                    Featured
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
-                            </article>
-                        @endif
-                    @endforeach
+
+                                    {{-- Content Column --}}
+                                    <div class="story-card-content">
+                                        {{-- Author & Date --}}
+                                        <p class="text-xs font-medium text-slate-500 dark:text-neutral-400">
+                                            <span class="font-bold text-slate-800 dark:text-neutral-200">{{ $authorName }}</span> on {{ $postDate }}
+                                        </p>
+
+                                        {{-- Title --}}
+                                        <a href="{{ $url }}" class="mt-2 block">
+                                            <h2 class="story-card-title">
+                                                {{ $postT->title }}
+                                            </h2>
+                                        </a>
+
+                                        {{-- Excerpt with diamond bullet --}}
+                                        <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-neutral-400 leading-relaxed line-clamp-2">
+                                            <span class="text-neutral-400 mr-1.5 font-bold">✣</span>{{ $postT->excerpt ?: 'Revision offers a unique space blending personal narratives and professional insights to foster real connections.' }}
+                                        </p>
+
+                                        {{-- Discover More Button --}}
+                                        <div class="mt-4 pt-0.5">
+                                            <a href="{{ $url }}" class="discover-btn">
+                                                <span>Discover More</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                @if (!$loop->last)
+                                    <hr class="border-slate-100 dark:border-[#1e2028]">
+                                @endif
+                            @endif
+                        @endforeach
+                    </div>
                 @endif
 
                 {{-- Pagination (1 2 ··· 4 >) --}}
-                <div class="flex items-center justify-center gap-2 pt-6">
+                <div class="flex items-center justify-center gap-2 pt-12 pb-6">
                     <span class="grid h-9 w-9 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white dark:text-slate-900">1</span>
                     <a href="{{ route('frontend.search') }}" class="grid h-9 w-9 place-items-center rounded-full text-xs font-bold text-slate-600 transition hover:bg-slate-200 dark:text-neutral-400 dark:hover:bg-[#20222a]">2</a>
                     <span class="px-1 text-slate-400">···</span>
@@ -190,18 +189,18 @@
                 </div>
             </div>
 
-            {{-- Right Sidebar: 4 cols on lg --}}
-            <aside class="lg:col-span-4 space-y-8 min-w-0">
+            {{-- Right Sidebar: 360px sticky/proportional column --}}
+            <aside class="space-y-8 min-w-0">
                 
                 {{-- ───── Widget 1: ABOUT ───── --}}
-                <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-xs dark:border-[#20222a] dark:bg-[#15161c]">
+                <div class="sidebar-widget-card">
                     <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
                         ABOUT
                     </p>
                     <div class="flex items-center gap-3.5">
                         <div class="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-emerald-500/30 bg-slate-100 dark:bg-[#1f212a]">
                             <img src="{{ $leadAuthor?->avatarUrl() ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' }}"
-                                 alt="{{ $leadAuthor?->name ?? 'Ethan Caldwell' }}"
+                                 alt="{{ $leadAuthor?->name ?? 'Editor' }}"
                                  class="h-full w-full object-cover">
                         </div>
                         <div class="min-w-0">
@@ -210,11 +209,11 @@
                         </div>
                     </div>
                     <p class="mt-4 text-xs leading-relaxed text-slate-600 dark:text-neutral-400">
-                        {{ $leadAuthor?->bio ?: 'Ethan Caldwell shares thoughtful insights and reflections on life, culture, and personal growth. His work explores the intersections of creativity and experience, offering readers unique perspectives.' }}
+                        {{ $leadAuthor?->bio ?: 'Sharing thoughtful insights and reflections on technology, culture, and personal growth. Exploring intersections of creativity and experience.' }}
                     </p>
                     <div class="mt-4 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-neutral-400">
                         <i data-lucide="map-pin" class="h-3.5 w-3.5 text-neutral-400"></i>
-                        <span>Paris, France</span>
+                        <span>Global Editorial Team</span>
                     </div>
                     {{-- Social links row --}}
                     <div class="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4 dark:border-[#22242e] text-slate-400 dark:text-neutral-400">
@@ -233,10 +232,10 @@
                         $fcSlug = $fcT?->slug;
                         $fcUrl = $fcSlug ? route('frontend.post.show', ['slug' => $fcSlug]) : '#';
                         $fcImg = $fCard->featuredImage?->url() ?? "https://picsum.photos/seed/np{$fCard->id}/600/400";
-                        $fcCatName = html_entity_decode((string) ($fCard->category?->translate('name') ?? 'MANAGEMENT'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $fcCatName = html_entity_decode((string) ($fCard->category?->translate('name') ?? 'FEATURED'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                     @endphp
                     @if ($fcT && $fcSlug)
-                        <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-xs dark:border-[#20222a] dark:bg-[#15161c]">
+                        <div class="sidebar-widget-card">
                             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
                                 FEATURED POSTS
                             </p>
@@ -250,7 +249,7 @@
                                 </div>
                                 <div class="absolute inset-x-0 bottom-0 p-4">
                                     <p class="text-[10px] font-semibold text-neutral-300">
-                                        {{ $fCard->published_at?->format('F d, Y') ?? 'July 7, 2024' }}
+                                        {{ $fCard->published_at?->format('F d, Y') ?? 'Recent' }}
                                     </p>
                                     <a href="{{ $fcUrl }}">
                                         <h4 class="mt-1 text-sm font-bold text-white leading-snug hover:text-emerald-300 line-clamp-2" style="font-family: 'Playfair Display', serif;">
@@ -268,116 +267,91 @@
                     @endif
                 @endif
 
-                {{-- ───── Widget 3: WORK EXPERIENCE ───── --}}
-                <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-xs dark:border-[#20222a] dark:bg-[#15161c]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
-                        WORK EXPERIENCE
-                    </p>
-                    <div class="space-y-4 text-xs">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Product Designer</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Pioneer</p>
-                            </div>
-                            <span class="text-[11px] text-slate-400 dark:text-neutral-500">2022 – Now</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e] flex items-center justify-between">
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Product Designer</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Digital</p>
-                            </div>
-                            <span class="text-[11px] text-slate-400 dark:text-neutral-500">2020 – 2022</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e] flex items-center justify-between">
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">UX/UI Designer</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Digital</p>
-                            </div>
-                            <span class="text-[11px] text-slate-400 dark:text-neutral-500">2017 – 2020</span>
+                {{-- ───── Widget 3: TOP CATEGORIES ───── --}}
+                @if ($popularCategory->isNotEmpty())
+                    <div class="sidebar-widget-card">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
+                            TOP CATEGORIES
+                        </p>
+                        <div class="space-y-3">
+                            @foreach ($popularCategory->take(5) as $cat)
+                                @php
+                                    $cName = html_entity_decode((string) ($cat->translate('name') ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                @endphp
+                                <a href="{{ route('frontend.category', ['slug' => $cat->translate('slug')]) }}"
+                                   class="flex items-center justify-between py-1.5 text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition group border-b border-slate-100 dark:border-[#20222a] last:border-0">
+                                    <span class="flex items-center gap-2">
+                                        @if ($cat->icon)
+                                            <i data-lucide="{{ $cat->icon }}" class="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-500"></i>
+                                        @else
+                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400 group-hover:bg-emerald-500"></span>
+                                        @endif
+                                        <span>{{ $cName }}</span>
+                                    </span>
+                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-[#20222c] dark:text-neutral-400">
+                                        {{ $cat->posts_count }}
+                                    </span>
+                                </a>
+                            @endforeach
                         </div>
                     </div>
-                </div>
+                @endif
 
-                {{-- ───── Widget 4: TECHNOLOGIES ───── --}}
-                <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-xs dark:border-[#20222a] dark:bg-[#15161c]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
-                        TECHNOLOGIES
-                    </p>
-                    <div class="space-y-4 text-xs">
-                        <div class="flex items-start gap-3.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-[#20222c] font-bold text-slate-700 dark:text-white">
-                                <i data-lucide="figma" class="h-4 w-4"></i>
-                            </span>
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Figma</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Collaborate and design interfaces in real-time.</p>
-                            </div>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e] flex items-start gap-3.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-[#20222c] font-bold text-slate-700 dark:text-white">
-                                <i data-lucide="file-text" class="h-4 w-4"></i>
-                            </span>
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Notion</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Organize, track, and collaborate on projects easily.</p>
-                            </div>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e] flex items-start gap-3.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-600 text-white font-black text-[10px]">
-                                Ps
-                            </span>
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Photoshop</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Professional image and graphic editing tool.</p>
-                            </div>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e] flex items-start gap-3.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-600 text-white font-black text-[10px]">
-                                Ai
-                            </span>
-                            <div>
-                                <h5 class="font-bold text-slate-900 dark:text-white">Illustrator</h5>
-                                <p class="text-[11px] text-slate-500 dark:text-neutral-400">Create precise vector graphics and illustrations.</p>
-                            </div>
+                {{-- ───── Widget 4: POPULAR TAGS ───── --}}
+                @if ($popularTags->isNotEmpty())
+                    <div class="sidebar-widget-card">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
+                            POPULAR TOPICS
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($popularTags as $t)
+                                @php
+                                    $tagName = html_entity_decode((string) ($t->translate('name') ?? $t->name), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                    $tagSlug = $t->translate('slug') ?? $t->slug;
+                                @endphp
+                                <a href="{{ route('frontend.tag', ['tag' => $tagSlug]) }}"
+                                   class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 dark:border-[#262832] dark:bg-[#181920] dark:text-neutral-300 dark:hover:bg-[#22242e]">
+                                    <span>#{{ $tagName }}</span>
+                                </a>
+                            @endforeach
                         </div>
                     </div>
-                </div>
+                @endif
 
-                {{-- ───── Widget 5: CREATING ───── --}}
-                <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-xs dark:border-[#20222a] dark:bg-[#15161c]">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
-                        CREATING
-                    </p>
-                    <div class="space-y-4 text-xs">
-                        <div>
-                            <a href="{{ route('frontend.search') }}" class="group flex items-center justify-between font-bold text-slate-900 dark:text-white hover:text-emerald-500">
-                                <span>Heartfelt Reflections</span>
-                                <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-slate-400 dark:text-neutral-500 group-hover:text-emerald-500"></i>
-                            </a>
-                            <p class="mt-1 text-[11px] text-slate-500 dark:text-neutral-400">A deep dive into emotional experiences and personal growth, sharing valuable insights on life's most meaningful moments.</p>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e]">
-                            <a href="{{ route('frontend.search') }}" class="group flex items-center justify-between font-bold text-slate-900 dark:text-white hover:text-emerald-500">
-                                <span>Latest Tech Gadgets</span>
-                                <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-slate-400 dark:text-neutral-500 group-hover:text-emerald-500"></i>
-                            </a>
-                            <p class="mt-1 text-[11px] text-slate-500 dark:text-neutral-400">Explore the newest and most innovative technology products hitting the market, from smart devices to cutting-edge tools.</p>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3.5 dark:border-[#22242e]">
-                            <a href="{{ route('frontend.search') }}" class="group flex items-center justify-between font-bold text-slate-900 dark:text-white hover:text-emerald-500">
-                                <span>Trends For 2024</span>
-                                <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-slate-400 dark:text-neutral-500 group-hover:text-emerald-500"></i>
-                            </a>
-                            <p class="mt-1 text-[11px] text-slate-500 dark:text-neutral-400">A look ahead at the emerging trends that will shape the world in 2024, from lifestyle shifts to groundbreaking innovations.</p>
+                {{-- ───── Widget 5: CURATED EDITORIAL PICKS ───── --}}
+                @if ($curatedStories->isNotEmpty())
+                    <div class="sidebar-widget-card">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 mb-5">
+                            EDITORIAL PICKS
+                        </p>
+                        <div class="space-y-4 text-xs">
+                            @foreach ($curatedStories as $cs)
+                                @php
+                                    $csT = $cs->translation() ?? ($cs->translations->firstWhere('language_id', $cs->default_language_id) ?? $cs->translations->first());
+                                    $csSlug = $csT?->slug;
+                                    $csUrl = $csSlug ? route('frontend.post.show', ['slug' => $csSlug]) : '#';
+                                @endphp
+                                @if ($csT && $csSlug)
+                                    <div class="@if (!$loop->first) border-t border-slate-100 pt-3.5 dark:border-[#20222a] @endif">
+                                        <a href="{{ $csUrl }}" class="group flex items-start justify-between gap-2 font-bold text-slate-900 dark:text-white hover:text-emerald-500 transition">
+                                            <span class="line-clamp-2 leading-snug" style="font-family: 'Playfair Display', serif;">{{ $csT->title }}</span>
+                                            <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-neutral-500 group-hover:text-emerald-500 transition"></i>
+                                        </a>
+                                        @if ($csT->excerpt)
+                                            <p class="mt-1 text-[11px] text-slate-500 dark:text-neutral-400 line-clamp-2">{{ $csT->excerpt }}</p>
+                                        @endif
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
-                </div>
+                @endif
 
             </aside>
         </div>
     </section>
 
-    {{-- ───── Centered Newsletter Section (Matching Reference Screenshot 5) ───── --}}
+    {{-- ───── Centered Newsletter Section (Revision Reference) ───── --}}
     <section class="border-t border-slate-200 py-20 text-center dark:border-[#1d1f27] dark:bg-[#0d0e12]">
         <div class="mx-auto max-w-xl px-4">
             <h2 class="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white"
