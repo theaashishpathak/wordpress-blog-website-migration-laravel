@@ -589,7 +589,7 @@
                         <i data-lucide="mail" class="h-5 w-5"></i>
                     </span>
                     <h3 class="mt-4 text-xl font-bold tracking-tight" style="font-family: 'Playfair Display', serif;">
-                        Stay Ahead with NewsPilot
+                        Stay Ahead with {{ config('app.name', 'Rupantrix') }}
                     </h3>
                     <p class="mt-2 text-xs text-white/80 leading-relaxed">
                         Curated briefings, investigative reports, and breakthrough stories delivered right to your inbox.

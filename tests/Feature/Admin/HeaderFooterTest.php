@@ -79,10 +79,10 @@ test('frontend header renders custom brand name and active moon in dark mode', f
 test('frontend footer renders custom brand and social links', function (): void {
     $settings = app(SettingService::class);
     $settings->set('footer.brand_text', 'NEWS EXPLORER FOOTER');
-    $settings->set('footer.social_github', 'https://github.com/newspilot');
+    $settings->set('footer.social_github', 'https://github.com/rupantrix');
 
     $view = (string) $this->view('components.frontend.footer');
 
     expect($view)->toContain('NEWS EXPLORER FOOTER');
-    expect($view)->toContain('https://github.com/newspilot');
+    expect($view)->toContain('https://github.com/rupantrix');
 });
