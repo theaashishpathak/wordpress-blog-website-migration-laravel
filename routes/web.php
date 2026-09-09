@@ -72,6 +72,8 @@ Route::group([
 // Authenticated app routes (admin/dashboard)
 // -------------------------------------------------------------------------
 
+Route::redirect('/admin', '/dashboard');
+
 Route::middleware('auth')->group(function (): void {
     Route::redirect('/profile', '/user/profile');
     Route::get('/user/profile', function (): View {

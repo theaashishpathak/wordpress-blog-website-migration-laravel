@@ -16,6 +16,8 @@ use Livewire\WithPagination;
 #[Layout('frontend.layouts.app')]
 class CategoryShow extends Component
 {
+    use WithPagination;
+
     public Category $category;
 
     /**

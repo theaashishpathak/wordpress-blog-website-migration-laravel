@@ -90,7 +90,7 @@ class WpDownloadMedia extends Command
                 $id = (string) $item['id'];
                 $res = $responses[$id] ?? null;
 
-                if ($res && $res->successful() && strlen($res->body()) > 0) {
+                if ($res instanceof \Illuminate\Http\Client\Response && $res->successful() && strlen($res->body()) > 0) {
                     Storage::disk('public')->put($item['path'], $res->body());
                     DB::table('media')->where('id', $item['id'])->update([
                         'path' => $item['path'],

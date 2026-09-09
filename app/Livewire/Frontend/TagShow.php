@@ -16,6 +16,8 @@ use Livewire\WithPagination;
 #[Layout('frontend.layouts.app')]
 class TagShow extends Component
 {
+    use WithPagination;
+
     public Tag $tag;
 
     /**
