@@ -160,13 +160,12 @@ php artisan wp:download-media --concurrency=15
 
 ---
 
-## 8. Production Deployment Guide (Hostinger)
+## 8. Production Deployment Guide
 
-Rupantrix is actively deployed and configured for production on **Hostinger Shared/Cloud Hosting**.
+Rupantrix is structured for production deployment on modern Linux/cloud environments (e.g., Hostinger, VPS, or dedicated hosting).
 
-* **Live Staging Domain:** `whitesmoke-panther-461035.hostingersite.com`
-* **Target Runtime:** PHP 8.3 CLI (`/opt/alt/php83/usr/bin/php`)
-* **Web Server Document Root:** Routed via root `.htaccess` rewriting into `public/`
+* **Target Runtime:** PHP 8.3+ CLI
+* **Web Server Document Root:** Routed to the `public/` directory (or via root `.htaccess` rewrite into `public/`)
 
 ### Automated Deployment Script (`deploy.sh`)
 
@@ -177,7 +176,7 @@ A production deployment runner (`deploy.sh`) is maintained in the project root t
 ```
 
 #### What `deploy.sh` executes:
-1. **PHP 8.3 Auto-Detection:** Dynamically locates Hostinger's PHP 8.3 binary (`/opt/alt/php83/usr/bin/php` or `php8.3`).
+1. **PHP 8.3 Auto-Detection:** Dynamically locates the PHP 8.3 binary (`/opt/alt/php83/usr/bin/php` or `php8.3`).
 2. **Maintenance Mode:** Engages `artisan down --retry=60` during asset swaps.
 3. **Branch Sync:** Pulls latest updates from the tracked branch (`main`).
 4. **Dependency Management:** Executes `composer install --no-dev --optimize-autoloader`.
@@ -211,34 +210,32 @@ The following issues were systematically investigated, patched, and verified in 
 5. **Media Pipeline Robustness:**
    - Refactored `app/Console/Commands/WpDownloadMedia.php` to handle `RequestException` instances gracefully, completing the transfer of **2,593 live media assets**.
 
-6. **Route Accessibility & Admin Redirects:**
-   - Added `Route::redirect('/admin', '/dashboard')` in `routes/web.php` to prevent 404 slug fallbacks when accessing the administration area.
-
-7. **Vite Asset Tracking:**
+6. **Vite Asset Tracking:**
    - Pre-compiled production bundles (`app.css`, `app.js`, `manifest.json`) in `public/build` for zero-dependency shared hosting environments.
 
-8. **Repository Sanitation:**
+7. **Repository Sanitation:**
    - Removed all legacy branding artifacts from templates, seeders (`RupantrixDemoSeeder.php`), tests, package locks, and code comments.
    - Unified commit histories cleanly onto the primary `main` branch.
 
 ---
 
-## 10. Roadmap & Upcoming Milestones
+## 10. Roadmap & Milestones Status
 
 | Milestone | Component | Description | Status |
 |---|---|---|---|
-| **Phase 2** | Data Migration | Import WordPress users, categories, media metadata, and post archives | ✅ Complete |
-| **Phase E** | Hostinger Deployment | Server provisioning, PHP 8.3 configuration, automated `deploy.sh` script | ✅ Complete |
+| **Phase 2** | Data Migration | Import legacy users, categories, media metadata, and post archives | ✅ Complete |
+| **Phase E** | Production Deployment | Server provisioning, PHP 8.3 configuration, automated `deploy.sh` script | ✅ Complete |
 | **Phase Media** | Asset Retrieval | High-speed server-side migration of 2,500+ physical image files | ✅ Complete |
 | **Phase A.1** | Subscribers System | Dedicated `/admin/subscribers` dashboard with promotion & status toggles | ✅ Complete |
 | **Phase A.2** | Public Registration | Fortify visitor registration with automatic role assignment and transactions | ✅ Complete |
 | **Phase A.3** | Livewire Pagination | `WithPagination` integration across Category and Tag feeds | ✅ Complete |
-| **Phase A.4** | TipTap Rich Text Editor | Validate `@js($value)` initialization and `:value` property binding | 🔶 Designed & Ready for Test |
-| **Phase A.5** | Route Binding Verification | Verify legacy ID vs primary key resolution in single post route model binding | 🔴 In Progress |
-| **Phase A.6** | Backlink Audit & Cleanup | Execute scanning and regex stripping of legacy spam links in `post_translations` | 🔴 Planned |
-| **Phase C** | SEO & 301 Redirects | Verify canonical headers, Open Graph tags, sitemap.xml, and 301 URL redirects | ⬜ Next Phase |
-| **Phase D** | Admin Panel Polish | Super Admin UI enhancements, activity log filters, and analytics widgets | ⬜ Planned |
-| **Phase Multi-Lang**| Bengali Localization | Populate localized translations in `post_translations` via language selector | ⏸ Deferred |
+| **Phase A.4** | TipTap Rich Text Editor | Rich-text initialization via `@js($value)` and content persistence | ✅ Complete |
+| **Phase A.5** | Route Model Binding | Primary key resolution and multi-language translation bindings | ✅ Complete |
+| **Phase A.6** | Data Remediation | Content audit, transformation, and legacy URL mapping | ✅ Complete |
+| **Phase B** | Clean URLs & Slugs | Canonical slug normalization and clean URL routing | ✅ Complete |
+| **Phase C** | SEO & Redirect Engine | Meta fields, Open Graph tags, XML sitemaps, and 301 redirect engine | ✅ Complete |
+| **Phase D** | Admin Panel Polish | Multi-role dashboards, activity logs, and permission management | ✅ Complete |
+| **Phase Multi-Lang**| Multi-Language Expansion | Expanding additional language translations (e.g., Bengali) in `post_translations` | ⏸ Deferred |
 
 ---
 
