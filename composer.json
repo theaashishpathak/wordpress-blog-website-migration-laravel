@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "Rupantrix-ai/app",
+    "name": "rupantrix-ai/app",
     "type": "project",
     "description": "Rupantrix — AI-powered multi-language news & magazine CMS built on Laravel + Livewire.",
     "keywords": [

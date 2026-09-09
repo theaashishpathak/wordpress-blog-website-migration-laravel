@@ -33,10 +33,10 @@
     </head>
     <body class="bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100" data-app-shell>
         <div class="flex min-h-screen flex-col lg:flex-row">
-            <x-client.sidebar />
+            <x-visitor.sidebar />
 
             <div class="flex min-h-screen flex-1 flex-col lg:pl-0">
-                <x-client.navbar />
+                <x-visitor.navbar />
 
                 <main class="flex-1 p-4 sm:p-6 lg:p-8">
                     @if (session('success'))
@@ -55,7 +55,7 @@
                     @yield('content')
                 </main>
 
-                <x-client.footer />
+                <x-visitor.footer />
             </div>
         </div>
 
